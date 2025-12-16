@@ -1,0 +1,130 @@
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9095';
+
+// Create axios instance
+const apiClient = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add request interceptor to include auth token
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = token;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// User API endpoints
+export const userAPI = {
+    // Register main account
+    register: async (userData) => {
+        try {
+            const response = await apiClient.post('/users/register', {
+                full_name: userData.fullName,
+                email: userData.email,
+                phone: userData.phone,
+                password: userData.password,
+                type: userData.userType,
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Login
+    login: async (email, password) => {
+        try {
+            const response = await apiClient.post('/users/login', {
+                email,
+                password,
+            });
+
+            // Store token in localStorage
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.data));
+            }
+
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Get all users
+    getAllUsers: async () => {
+        try {
+            const response = await apiClient.get('/users');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Get sub-accounts
+    getSubAccounts: async () => {
+        try {
+            const response = await apiClient.get('/users/sub-accounts');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Create sub-user
+    createSubUser: async (userData) => {
+        try {
+            const response = await apiClient.post('/users/sub-user', {
+                full_name: userData.fullName,
+                email: userData.email,
+                phone: userData.phone,
+                password: userData.password,
+                role_id: userData.roleId || 'STAFF',
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Update user
+    updateUser: async (id, userData) => {
+        try {
+            const response = await apiClient.put(`/users/${id}`, {
+                full_name: userData.fullName,
+                email: userData.email,
+                phone: userData.phone,
+                password: userData.password,
+                status: userData.status,
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Logout
+    logout: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+    },
+
+    // Get current user
+    getCurrentUser: () => {
+        const userData = localStorage.getItem('user');
+        return userData ? JSON.parse(userData) : null;
+    },
+};
+
+export default apiClient;

@@ -1,0 +1,30 @@
+{
+  "name": "power-payroll-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "build": "javascript-obfuscator ./ --output ./dist --exclude node_modules --compact true --control-flow-flattening true --dead-code-injection true --string-array true --disable-console-output true"
+  },
+  "keywords": [],
+  "author": "Kassam Mustapha - binarycode",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "mysql": "^2.18.1",
+    "nodemon": "^3.1.10"
+  }
+}

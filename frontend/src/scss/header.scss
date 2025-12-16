@@ -1,0 +1,50 @@
+
+// Top Header Navigation Styles
+.header-dropdown {
+  // Make dropdown open on hover for desktop
+  @media (min-width: 768px) {
+    &:hover > .dropdown-menu {
+      display: block;
+      margin-top: 0; // Align directly below
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      animation: fadeIn 0.2s ease-in-out;
+    }
+  }
+
+  // Dropdown menu styling
+  .dropdown-menu {
+    border-radius: 0.25rem;
+    box-shadow: 0 5px 10px rgba(30,32,37,.12);
+    border: 1px solid rgba(0,0,0,.05);
+    padding: 0.5rem 0;
+    
+    // Animation setup
+    @media (min-width: 768px) {
+      display: none; // Hidden by default, shown on hover via parent
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+  }
+
+  // Toggle styling
+  .dropdown-toggle {
+    &::after {
+      margin-left: 0.5em;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Fade in animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
