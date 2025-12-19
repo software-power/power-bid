@@ -13,6 +13,11 @@ import {
   cilPuzzle,
   cilSpeedometer,
   cilStar,
+  cilSettings,
+  cilPeople,
+  cilBriefcase,
+  cilCart,
+  cilMoney,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -21,42 +26,39 @@ const _nav = [
     component: CNavItem,
     name: 'Dashboard',
     to: '/dashboard',
+    icon: <CIcon icon={cilSpeedometer} size="lg" />,
   },
-  // {
-  //   component: CNavTitle,
-  //   name: 'Components',
-  // },
+  {
+    component: CNavGroup,
+    name: 'Master',
+    to: '/master',
+    icon: <CIcon icon={cilSettings} size="lg" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Attachment Types',
+        to: '/master/attachment-types',
+      },
+    ],
+  },
   {
     component: CNavGroup,
     name: 'Admin',
     to: '/base',
-    icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilPeople} size="lg" />,
     items: [
       {
         component: CNavItem,
         name: 'Users',
         to: '/users',
       },
-
-
-      // {
-      //   component: CNavItem,
-      //   name: 'Tables',
-      //   to: '/base/tables',
-      // },
-      // {
-      //   component: CNavItem,
-      //   name: 'Tabs',
-      //   to: '/base/tabs',
-      // },
-
     ],
   },
   {
     component: CNavGroup,
     name: 'Seller',
     to: '/seller',
-    icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilBriefcase} size="lg" />,
     items: [
       {
         component: CNavItem,
@@ -68,18 +70,43 @@ const _nav = [
         name: 'Add Quotation',
         to: '/seller/add-quotation',
       },
+      {
+        component: CNavItem,
+        name: 'Invited Quotations',
+        to: '/seller/invited-quotations',
+      },
+      {
+        component: CNavItem,
+        name: 'My Quotations',
+        to: '/seller/my-quotations',
+      },
+      {
+        component: CNavItem,
+        name: 'Certificates Attachments',
+        to: '/seller/certificates',
+      },
     ],
   },
   {
     component: CNavGroup,
     name: 'Buyer',
     to: '/buyer',
-    icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilCart} size="lg" />,
     items: [
       {
         component: CNavItem,
         name: 'Users',
         to: '/buyer/users',
+      },
+      {
+        component: CNavItem,
+        name: 'Add Quotation',
+        to: '/buyer/add-quotation',
+      },
+      {
+        component: CNavItem,
+        name: 'My Quotations',
+        to: '/buyer/my-quotations',
       },
       {
         component: CNavItem,
@@ -92,30 +119,19 @@ const _nav = [
     component: CNavGroup,
     name: 'Transactions',
     to: '/buttons',
-    icon: <CIcon icon={cilCursor} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilMoney} size="lg" />,
     items: [
       {
         component: CNavItem,
         name: 'Bids',
         to: '/buttons/buttons',
       },
-      // {
-      //   component: CNavItem,
-      //   name: 'Buttons groups',
-      //   to: '/buttons/button-groups',
-      // },
-      // {
-      //   component: CNavItem,
-      //   name: 'Dropdowns',
-      //   to: '/buttons/dropdowns',
-      // },
-
     ],
   },
   {
     component: CNavGroup,
     name: 'Reports',
-    icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilChartPie} size="lg" />,
     items: [
 
 

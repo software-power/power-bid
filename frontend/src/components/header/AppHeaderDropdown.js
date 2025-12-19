@@ -29,6 +29,7 @@ import avatar8 from './../../assets/images/avatars/8.jpg'
 
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
+  const user = JSON.parse(localStorage.getItem('user'))
 
   const handleLogout = (e) => {
     e.preventDefault()
@@ -40,8 +41,8 @@ const AppHeaderDropdown = () => {
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0 d-flex align-items-center gap-2" caret={false}>
         <CAvatar src={avatar8} size="md" />
         <div className="d-flex flex-column text-start">
-          <span className="fw-semibold small">Samir</span>
-          <span className="text-muted small" style={{ fontSize: '0.75rem' }}>admin</span>
+          <span className="fw-semibold small">{user?.full_name || 'User'}</span>
+          <span className="text-muted small" style={{ fontSize: '0.75rem' }}>{user?.type || 'Guest'}</span>
         </div>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">

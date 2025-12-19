@@ -118,7 +118,26 @@ const AppHeader = () => {
       {/* Row 2: Navigation Menu */}
       <CContainer fluid className="px-4 py-2 border-bottom bg-white d-none d-md-flex">
         <CHeaderNav className="w-100">
-          <AppHeaderNav items={navigation} />
+          <AppHeaderNav items={(() => {
+            const userStr = localStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : {};
+            const role = user.type || '';
+
+            return navigation.filter(item => {
+              if (role === 'admin') return true;
+
+              if (role === 'buyer') {
+                return item.name !== 'Admin' && item.name !== 'Seller';
+              }
+
+              if (role === 'seller') {
+                return item.name !== 'Admin' && item.name !== 'Buyer';
+              }
+
+              // Default/Unknown: Hide specific role menus, show common
+              return item.name !== 'Admin' && item.name !== 'Seller' && item.name !== 'Buyer';
+            });
+          })()} />
         </CHeaderNav>
       </CContainer>
 

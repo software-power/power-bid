@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9095';
+const API_BASE_URL = 'http://10.10.100.15:9095';
 
 // Create axios instance
 const apiClient = axios.create({
@@ -24,6 +24,26 @@ apiClient.interceptors.request.use(
     }
 );
 
+// Add response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Don't redirect if we are already on the login or register page
+            // This prevents loops if the login API itself returns 401 (invalid credentials)
+            const currentHash = window.location.hash;
+            if (!currentHash.includes('#/login') && !currentHash.includes('#/register')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '#/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 // User API endpoints
 export const userAPI = {
     // Register main account
@@ -33,6 +53,8 @@ export const userAPI = {
                 full_name: userData.fullName,
                 email: userData.email,
                 phone: userData.phone,
+                tin_no: userData.tinNo,
+                business_licence: userData.businessLicence,
                 password: userData.password,
                 type: userData.userType,
             });
@@ -89,6 +111,8 @@ export const userAPI = {
                 full_name: userData.fullName,
                 email: userData.email,
                 phone: userData.phone,
+                tin_no: userData.tinNo,
+                business_licence: userData.businessLicence,
                 password: userData.password,
                 role_id: userData.roleId || 'STAFF',
             });
@@ -105,6 +129,8 @@ export const userAPI = {
                 full_name: userData.fullName,
                 email: userData.email,
                 phone: userData.phone,
+                tin_no: userData.tinNo,
+                business_licence: userData.businessLicence,
                 password: userData.password,
                 status: userData.status,
             });

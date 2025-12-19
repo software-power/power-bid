@@ -4,11 +4,13 @@ const {
   findUserByEmail,
   findUserById,
   checkEmailExists,
+  checkTinExists,
   createMainAccount,
   createSubUser,
   getAllUsers,
   getUsersByMainAccount,
   updateUser,
+  updateMainAccountId, // Import updateMainAccountId
 } = require('../Models/usersModel');
 
 const SALT_ROUNDS = 10;
@@ -98,8 +100,11 @@ const userLogin = async (req, res) => {
 /**
  * Register Main Account (Public endpoint)
  */
+/**
+ * Register Main Account (Public endpoint) - SELLERS ONLY
+ */
 const registerMainAccount = async (req, res) => {
-  const { full_name, email, phone, password, type } = req.body;
+  const { full_name, email, phone, password, type, tin_no, business_licence } = req.body;
 
   // Validation
   if (!full_name || !email || !password || !type) {
@@ -109,12 +114,11 @@ const registerMainAccount = async (req, res) => {
     });
   }
 
-  // Validate type
-  const validTypes = ['buyer', 'seller', 'admin'];
-  if (!validTypes.includes(type)) {
+  // Validate type - ONLY SELLER ALLOWED
+  if (type !== 'seller') {
     return res.status(400).json({
       status: 'error',
-      message: 'Type must be buyer, seller, or admin',
+      message: 'Only seller self-registration is allowed',
     });
   }
 
@@ -145,6 +149,17 @@ const registerMainAccount = async (req, res) => {
       });
     }
 
+    // Check if TIN already exists (if provided)
+    if (tin_no) {
+      const tinExists = await checkTinExists(tin_no);
+      if (tinExists) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'TIN number already exists',
+        });
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
@@ -154,20 +169,27 @@ const registerMainAccount = async (req, res) => {
       full_name,
       email,
       phone: phone || null,
+      tin_no: tin_no || null,
+      business_licence: business_licence || null,
       password: hashedPassword,
     };
 
     const result = await createMainAccount(userData);
+    const newUserId = result.insertId;
+
+    // Update main_account_id to be self-referencing (Seller owns their account)
+    await updateMainAccountId(newUserId, newUserId);
 
     res.status(201).json({
       status: 'success',
       message: 'Account created successfully',
       data: {
-        id: result.insertId,
+        id: newUserId,
         full_name,
         email,
         type,
         role_id: 'OWNER',
+        main_account_id: newUserId, // Confirm self-reference in response
       },
     });
   } catch (err) {
@@ -183,7 +205,7 @@ const registerMainAccount = async (req, res) => {
  * Create Sub-User (Protected endpoint - OWNER only)
  */
 const createSubUserAccount = async (req, res) => {
-  const { full_name, email, phone, password, role_id } = req.body;
+  const { full_name, email, phone, password, role_id, tin_no, business_licence } = req.body;
   const parentUserId = req.user.id; // From JWT middleware
 
   // Validation
@@ -266,6 +288,8 @@ const createSubUserAccount = async (req, res) => {
       full_name,
       email,
       phone: phone || null,
+      tin_no: tin_no || null,
+      business_licence: business_licence || null,
       password: hashedPassword,
       main_account_id: parentUserId,
     };
@@ -340,7 +364,7 @@ const getMySubAccounts = async (req, res) => {
  */
 const updateUserDetails = async (req, res) => {
   const userId = req.params.id;
-  const { full_name, email, phone, status, password, type } = req.body;
+  const { full_name, email, phone, status, password, type, tin_no, business_licence } = req.body;
 
   // Validation
   if (!full_name || !email) {
@@ -397,6 +421,8 @@ const updateUserDetails = async (req, res) => {
       full_name,
       email,
       phone: phone || null,
+      tin_no: tin_no || null,
+      business_licence: business_licence || null,
       status: status || currentUser.status,
       password: hashedPassword,
     };

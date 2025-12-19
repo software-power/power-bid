@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -12,61 +12,100 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
-  CNavbar,
-  CNavbarNav,
-  CNavItem,
-  CNavLink,
+  CToast,
+  CToastBody,
+  CToaster,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
-  cilHome,
-  cilBriefcase,
-  cilCommentBubble,
-  cilUser,
-  cilLockLocked,
-  cilLowVision,
   cilAddressBook,
+  cilLockLocked,
   cilPhone,
-  cilLocationPin,
   cilFile,
-  cilCloudUpload
+  cilUser,
 } from '@coreui/icons'
 import logo from '../../../assets/images/logo.png'
+import { userAPI } from '../../../services/userService'
 
 const Register = () => {
+  const navigate = useNavigate()
+  const toaster = useRef()
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState(0)
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    tinNo: '',
+    businessLicence: '',
+    password: '',
+    confirmPassword: '',
+  })
+
+  const addToast = (message, color = 'danger') => {
+    setToast(
+      <CToast autohide={true} visible={true} color={color} className="text-white align-items-center">
+        <div className="d-flex">
+          <CToastBody>{message}</CToastBody>
+        </div>
+      </CToast>
+    )
+  }
+
+  const handleChange = (e) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }))
+  }
+
+  const handleRegister = async () => {
+    const { fullName, email, phone, tinNo, businessLicence, password, confirmPassword } = formData
+
+    if (!fullName || !email || !password || !confirmPassword) {
+      addToast('Please fill in all required fields')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      addToast('Passwords do not match')
+      return
+    }
+
+    if (password.length < 8) {
+      addToast('Password must be at least 8 characters')
+      return
+    }
+
+    setLoading(true)
+    try {
+      // Force userType to 'seller'
+      await userAPI.register({
+        fullName,
+        email,
+        phone,
+        tinNo,
+        businessLicence,
+        password,
+        userType: 'seller',
+      })
+
+      addToast('Registration successful! Redirecting to login...', 'success')
+      setTimeout(() => navigate('/login'), 2000)
+    } catch (error) {
+      console.error('Registration error:', error)
+      addToast(error.message || 'Registration failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
-      {/* Top Navbar */}
-      {/* <CNavbar colorScheme="light" className="bg-white border-bottom px-5 py-3">
-        <CContainer fluid className="justify-content-end">
-          <CNavbarNav className="d-flex flex-row align-items-center gap-4">
-            <CNavItem>
-              <CNavLink href="#" className="d-flex align-items-center text-secondary fw-semibold" style={{ fontSize: '0.9rem' }}>
-                <CIcon icon={cilHome} className="me-2" /> HOME
-              </CNavLink>
-            </CNavItem>
-            <CNavItem>
-              <CNavLink href="#" className="d-flex align-items-center text-secondary fw-semibold" style={{ fontSize: '0.9rem' }}>
-                <CIcon icon={cilBriefcase} className="me-2" /> VACANCIES
-              </CNavLink>
-            </CNavItem>
-            <CNavItem>
-              <CNavLink href="#" className="d-flex align-items-center text-secondary fw-semibold" style={{ fontSize: '0.9rem' }}>
-                <CIcon icon={cilCommentBubble} className="me-2" /> FEEDBACK
-              </CNavLink>
-            </CNavItem>
-            <CNavItem>
-              <Link to="/login" style={{ textDecoration: 'none' }}>
-                <CButton color="primary" className="px-4 fw-bold text-white d-flex align-items-center">
-                  <CIcon icon={cilUser} className="me-2" /> LOGIN
-                </CButton>
-              </Link>
-            </CNavItem>
-          </CNavbarNav>
-        </CContainer>
-      </CNavbar> */}
+      <CToaster ref={toaster} push={toast} placement="top-end" />
 
-      {/* Main Content */}
       <div className="flex-grow-1 d-flex align-items-center justify-content-center py-5">
         <CContainer>
           <CRow className="justify-content-center">
@@ -75,11 +114,28 @@ const Register = () => {
                 <CCardBody>
                   <div className="text-center mb-4">
                     <img src={logo} alt="Logo" height="80" className="mb-3" />
-                    {/* <h3 className="fw-bold text-dark">Create Account</h3> */}
-                    <p className="text-muted small">Provide your details to register</p>
+                    {/* <h3 className="fw-bold text-dark">Seller Registration</h3> */}
+                    <p className="text-muted small">Create your seller account to get started</p>
                   </div>
 
                   <CForm>
+                    <div className="mb-3">
+                      <CFormLabel htmlFor="fullName" className="small text-muted fw-semibold">Full Name</CFormLabel>
+                      <CInputGroup>
+                        <CInputGroupText className="bg-transparent border-end-0">
+                          <CIcon icon={cilUser} className="text-muted" />
+                        </CInputGroupText>
+                        <CFormInput
+                          type="text"
+                          id="fullName"
+                          placeholder="Ex. John Doe"
+                          className="border-start-0"
+                          value={formData.fullName}
+                          onChange={handleChange}
+                        />
+                      </CInputGroup>
+                    </div>
+
                     <CRow>
                       <CCol md={6}>
                         <div className="mb-3">
@@ -88,7 +144,14 @@ const Register = () => {
                             <CInputGroupText className="bg-transparent border-end-0">
                               <CIcon icon={cilAddressBook} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="email" id="email" placeholder="Enter your email" className="border-start-0" />
+                            <CFormInput
+                              type="email"
+                              id="email"
+                              placeholder="name@example.com"
+                              className="border-start-0"
+                              value={formData.email}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
@@ -99,57 +162,57 @@ const Register = () => {
                             <CInputGroupText className="bg-transparent border-end-0">
                               <CIcon icon={cilPhone} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="tel" id="phone" placeholder="Enter phone number" className="border-start-0" />
+                            <CFormInput
+                              type="tel"
+                              id="phone"
+                              placeholder="0700 000 000"
+                              className="border-start-0"
+                              value={formData.phone}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
                     </CRow>
-
-                    <div className="mb-3">
-                      <CFormLabel htmlFor="address" className="small text-muted fw-semibold">Address</CFormLabel>
-                      <CInputGroup>
-                        <CInputGroupText className="bg-transparent border-end-0">
-                          <CIcon icon={cilLocationPin} className="text-muted" />
-                        </CInputGroupText>
-                        <CFormInput type="text" id="address" placeholder="Enter business address" className="border-start-0" />
-                      </CInputGroup>
-                    </div>
 
                     <CRow>
                       <CCol md={6}>
                         <div className="mb-3">
-                          <CFormLabel htmlFor="tin" className="small text-muted fw-semibold">TIN Number</CFormLabel>
+                          <CFormLabel htmlFor="tinNo" className="small text-muted fw-semibold">TIN Number</CFormLabel>
                           <CInputGroup>
                             <CInputGroupText className="bg-transparent border-end-0">
                               <CIcon icon={cilFile} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="text" id="tin" placeholder="Enter TIN number" className="border-start-0" />
+                            <CFormInput
+                              type="text"
+                              id="tinNo"
+                              placeholder="TIN Number"
+                              className="border-start-0"
+                              value={formData.tinNo}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
                       <CCol md={6}>
                         <div className="mb-3">
-                          <CFormLabel htmlFor="certificate" className="small text-muted fw-semibold">Upload Certificate</CFormLabel>
+                          <CFormLabel htmlFor="businessLicence" className="small text-muted fw-semibold">Business License No.</CFormLabel>
                           <CInputGroup>
                             <CInputGroupText className="bg-transparent border-end-0">
-                              <CIcon icon={cilCloudUpload} className="text-muted" />
+                              <CIcon icon={cilFile} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="file" id="certificate" className="border-start-0" />
+                            <CFormInput
+                              type="text"
+                              id="businessLicence"
+                              placeholder="License Number"
+                              className="border-start-0"
+                              value={formData.businessLicence}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
                     </CRow>
-
-                    <div className="mb-3">
-                      <CFormLabel htmlFor="license" className="small text-muted fw-semibold">Business License</CFormLabel>
-                      <CInputGroup>
-                        <CInputGroupText className="bg-transparent border-end-0">
-                          <CIcon icon={cilFile} className="text-muted" />
-                        </CInputGroupText>
-                        <CFormInput type="file" id="license" className="border-start-0" />
-                      </CInputGroup>
-                    </div>
-
 
                     <CRow>
                       <CCol md={6}>
@@ -159,10 +222,14 @@ const Register = () => {
                             <CInputGroupText className="bg-transparent border-end-0">
                               <CIcon icon={cilLockLocked} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="password" id="password" placeholder="Create password" className="border-start-0 border-end-0" />
-                            <CInputGroupText className="bg-transparent border-start-0">
-                              <CIcon icon={cilLowVision} className="text-muted" />
-                            </CInputGroupText>
+                            <CFormInput
+                              type="password"
+                              id="password"
+                              placeholder="Create password"
+                              className="border-start-0"
+                              value={formData.password}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
@@ -173,18 +240,28 @@ const Register = () => {
                             <CInputGroupText className="bg-transparent border-end-0">
                               <CIcon icon={cilLockLocked} className="text-muted" />
                             </CInputGroupText>
-                            <CFormInput type="password" id="confirmPassword" placeholder="Confirm password" className="border-start-0 border-end-0" />
-                            <CInputGroupText className="bg-transparent border-start-0">
-                              <CIcon icon={cilLowVision} className="text-muted" />
-                            </CInputGroupText>
+                            <CFormInput
+                              type="password"
+                              id="confirmPassword"
+                              placeholder="Confirm password"
+                              className="border-start-0"
+                              value={formData.confirmPassword}
+                              onChange={handleChange}
+                            />
                           </CInputGroup>
                         </div>
                       </CCol>
                     </CRow>
 
                     <div className="d-grid gap-2 my-4">
-                      <CButton color="primary" className="py-2 text-white fw-semibold" style={{ backgroundColor: '#7da0c2', borderColor: '#7da0c2' }}>
-                        Create Account
+                      <CButton
+                        color="primary"
+                        className="py-2 text-white fw-semibold"
+                        style={{ backgroundColor: '#7da0c2', borderColor: '#7da0c2' }}
+                        onClick={handleRegister}
+                        disabled={loading}
+                      >
+                        {loading ? 'Creating Account...' : 'Register as Seller'}
                       </CButton>
                     </div>
 

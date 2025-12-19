@@ -60,6 +60,27 @@ const requireOwnerRole = (req, res, next) => {
 };
 
 /**
+ * Middleware to require Admin type
+ */
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Authentication required',
+    });
+  }
+
+  if (req.user.type !== 'admin') {
+    return res.status(403).json({
+      status: 'error',
+      message: 'Access denied. Admin rights required.',
+    });
+  }
+
+  next();
+};
+
+/**
  * Method for refreshing token once old one expired
  * @param {String} token - Old token, required for new token refreshing
  */
@@ -72,5 +93,6 @@ const AccessTokenRefresher = (token) => {
 module.exports = {
   AccessTokenVerifier,
   requireOwnerRole,
+  requireAdmin,
   AccessTokenRefresher,
 };

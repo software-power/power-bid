@@ -18,7 +18,7 @@ export const AppHeaderNav = ({ items }) => {
         return (
             <>
                 {icon && icon}
-                {name && name}
+                {name && <span className={icon ? 'ms-2' : ''}>{name}</span>}
                 {badge && (
                     <CBadge color={badge.color} className="ms-auto">
                         {badge.text}

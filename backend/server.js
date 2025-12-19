@@ -55,7 +55,7 @@ app.use((req, res, next) => {
 
 // Register all  routes 
 const usersRoutes = require('./Routes/usersRoute');
-const mcheniRoutes = require('./Routes/mcheniRoute'); 
+const mcheniRoutes = require('./Routes/mcheniRoute');
 const leaveRoutes = require('./Routes/leaveRoute');
 const payrollYearRoute = require('./Routes/payrollyearRoute');
 const payslipRoute = require('./Routes/payslipRoute');
@@ -65,12 +65,29 @@ const loanRoutes = require('./Routes/loanRoutes');
 
 
 app.use('/users', usersRoutes);
-app.use('/hello', mcheniRoutes); 
+app.use('/hello', mcheniRoutes);
 
 app.use('/leave', leaveRoutes);
 app.use('/payroll-months', payrollYearRoute);
-app.use('/payslips',payslipRoute);
+app.use('/payslips', payslipRoute);
 app.use('/loan', loanRoutes);
+
+const attachmentsRoute = require('./Routes/attachmentsRoute');
+const tendersRoute = require('./Routes/tendersRoute');
+const quotationsRoute = require('./Routes/quotationsRoute'); // Import quotations route
+
+app.use('/attachments', attachmentsRoute);
+app.use('/tenders', tendersRoute);
+app.use('/quotations', quotationsRoute); // Register quotations route
+
+// Serve static files from public directory
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+const reactBuildPath = path.join(__dirname, '../frontend/build');
+app.use(express.static(reactBuildPath));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(reactBuildPath, 'index.html'));
+});
 
 
 // Start server

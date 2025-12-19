@@ -29,10 +29,9 @@ import {
     CFormLabel,
     CFormSelect,
     CSpinner,
-    CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilPlus, cilPencil, cilTrash, cilZoom, cilOptions, cilLockLocked, cilEnvelopeClosed, cilPhone, cilLocationPin, cilFile, cilCloudUpload, cilUser } from '@coreui/icons'
+import { cilSearch, cilPlus, cilPencil, cilZoom, cilOptions, cilLockLocked, cilEnvelopeClosed, cilPhone, cilUser } from '@coreui/icons'
 import { userAPI } from '../../services/userService'
 import { toast } from 'react-toastify'
 
@@ -41,38 +40,41 @@ const Users = () => {
     const [modalVisible, setModalVisible] = useState(false)
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
-    // Removed local error/success state for toast usage where applicable, keeping error for specific field validation if needed or generic error
-    const [error, setError] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false)
     const [editingUser, setEditingUser] = useState(null)
+    const [currentUser, setCurrentUser] = useState(null)
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
         phone: '',
-        address: '',
-        tinNumber: '',
+        tinNo: '',
+        businessLicence: '',
         userType: '',
-        certificate: null,
-        businessLicense: null,
         password: '',
         confirmPassword: ''
     })
 
-    // Fetch users on component mount
     useEffect(() => {
-        fetchUsers()
+        const user = userAPI.getCurrentUser()
+        setCurrentUser(user)
+        fetchUsers(user)
     }, [])
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (user) => {
         try {
             setLoading(true)
-            setError(null)
-            const response = await userAPI.getAllUsers()
+            let response
+            if (user?.type === 'admin') {
+                // Admin sees all
+                response = await userAPI.getAllUsers()
+            } else {
+                // Buyer/Seller (OWNER of their account) sees their sub-accounts + themselves
+                response = await userAPI.getSubAccounts()
+            }
             setUsers(response.data || [])
         } catch (err) {
             console.error('Error fetching users:', err)
             toast.error(err.message || 'Failed to load users')
-            setError(err.message || 'Failed to load users')
         } finally {
             setLoading(false)
         }
@@ -84,11 +86,9 @@ const Users = () => {
             fullName: user.full_name,
             email: user.email,
             phone: user.phone || '',
-            address: user.address || '',
-            tinNumber: user.tin_number || '',
+            tinNo: user.tin_no || '',
+            businessLicence: user.business_licence || '',
             userType: user.type,
-            certificate: null,
-            businessLicense: null,
             password: '',
             confirmPassword: '',
             status: user.status
@@ -102,11 +102,9 @@ const Users = () => {
             fullName: '',
             email: '',
             phone: '',
-            address: '',
-            tinNumber: '',
-            userType: '',
-            certificate: null,
-            businessLicense: null,
+            tinNo: '',
+            businessLicence: '',
+            userType: currentUser?.type === 'admin' ? '' : currentUser?.type, // Admin chooses, others inherit
             password: '',
             confirmPassword: ''
         })
@@ -114,9 +112,13 @@ const Users = () => {
     }
 
     const handleSubmit = async () => {
-        // Validation
-        if (!formData.fullName || !formData.email || (!editingUser && !formData.password) || (!editingUser && !formData.userType)) {
+        if (!formData.fullName || !formData.email || (!editingUser && !formData.password)) {
             toast.error('Please fill in all required fields')
+            return
+        }
+
+        if (currentUser?.type === 'admin' && !editingUser && !formData.userType) {
+            toast.error('Please select a user type')
             return
         }
 
@@ -132,37 +134,30 @@ const Users = () => {
 
         try {
             setSubmitLoading(true)
-            setError(null)
 
             if (editingUser) {
-                // Update existing user
                 await userAPI.updateUser(editingUser.id, formData)
                 toast.success('User updated successfully!')
             } else {
-                // Register new user
-                await userAPI.register(formData)
-                toast.success('User registered successfully!')
+                if (currentUser?.type === 'admin') {
+                    // Admin creates Main Accounts
+                    await userAPI.register({
+                        ...formData,
+                        userType: formData.userType
+                    })
+                } else {
+                    // Buyer/Seller creates Sub-Users
+                    await userAPI.createSubUser({
+                        ...formData,
+                        roleId: 'USER' // Default role for sub-users
+                    })
+                }
+                toast.success('User created successfully!')
             }
 
             setModalVisible(false)
             setEditingUser(null)
-
-            // Reset form
-            setFormData({
-                fullName: '',
-                email: '',
-                phone: '',
-                address: '',
-                tinNumber: '',
-                userType: '',
-                certificate: null,
-                businessLicense: null,
-                password: '',
-                confirmPassword: ''
-            })
-
-            // Refresh users list
-            fetchUsers()
+            fetchUsers(currentUser)
         } catch (err) {
             console.error('Operation error:', err)
             toast.error(err.message || 'Operation failed')
@@ -171,11 +166,12 @@ const Users = () => {
         }
     }
 
-    // Filter users based on search term
     const filteredUsers = users.filter(user =>
         user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.phone?.includes(searchTerm)
+        user.phone?.includes(searchTerm) ||
+        user.tin_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.business_licence?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     return (
@@ -189,18 +185,15 @@ const Users = () => {
                                     <CIcon icon={cilSearch} />
                                 </CInputGroupText>
                                 <CFormInput
-                                    placeholder="Search by name, email or phone"
+                                    placeholder="Search users..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </CInputGroup>
                         </div>
-                        <CButton
-                            color="primary"
-                            className="d-flex align-items-center gap-2"
-                            onClick={handleCreate}
-                        >
-                            <CIcon icon={cilPlus} /> Register New User
+                        <CButton color="primary" onClick={handleCreate}>
+                            <CIcon icon={cilPlus} className="me-2" />
+                            {currentUser?.type === 'admin' ? 'Register New Account' : 'Add User'}
                         </CButton>
                     </CCardHeader>
                     <CCardBody className="p-0">
@@ -208,12 +201,12 @@ const Users = () => {
                             <CTable hover className="mb-0">
                                 <CTableHead style={{ backgroundColor: '#f0f0f0' }}>
                                     <CTableRow>
-                                        <CTableHeaderCell className="text-center">No.</CTableHeaderCell>
                                         <CTableHeaderCell>Full Name</CTableHeaderCell>
                                         <CTableHeaderCell>Email</CTableHeaderCell>
                                         <CTableHeaderCell>Phone</CTableHeaderCell>
+                                        <CTableHeaderCell>TIN No</CTableHeaderCell>
+                                        <CTableHeaderCell>Licence</CTableHeaderCell>
                                         <CTableHeaderCell>Type</CTableHeaderCell>
-                                        <CTableHeaderCell>Role</CTableHeaderCell>
                                         <CTableHeaderCell>Status</CTableHeaderCell>
                                         <CTableHeaderCell>Created At</CTableHeaderCell>
                                         <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
@@ -224,7 +217,6 @@ const Users = () => {
                                         <CTableRow>
                                             <CTableDataCell colSpan="9" className="text-center py-4">
                                                 <CSpinner color="primary" />
-                                                <div className="mt-2">Loading users...</div>
                                             </CTableDataCell>
                                         </CTableRow>
                                     ) : filteredUsers.length === 0 ? (
@@ -234,20 +226,20 @@ const Users = () => {
                                             </CTableDataCell>
                                         </CTableRow>
                                     ) : (
-                                        filteredUsers.map((user, index) => (
+                                        filteredUsers.map((user) => (
                                             <CTableRow key={user.id}>
-                                                <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
                                                 <CTableDataCell>{user.full_name}</CTableDataCell>
                                                 <CTableDataCell>{user.email}</CTableDataCell>
                                                 <CTableDataCell>{user.phone || '-'}</CTableDataCell>
+                                                <CTableDataCell>{user.tin_no || '-'}</CTableDataCell>
+                                                <CTableDataCell>{user.business_licence || '-'}</CTableDataCell>
                                                 <CTableDataCell>
                                                     <CBadge color={user.type === 'admin' ? 'danger' : user.type === 'seller' ? 'info' : 'primary'}>
                                                         {user.type?.toUpperCase()}
                                                     </CBadge>
                                                 </CTableDataCell>
-                                                <CTableDataCell>{user.role_id}</CTableDataCell>
                                                 <CTableDataCell>
-                                                    <CBadge color={user.status === 'active' ? 'success' : user.status === 'inactive' ? 'secondary' : 'warning'} className="px-3 py-1">
+                                                    <CBadge color={user.status === 'active' ? 'success' : 'secondary'}>
                                                         {user.status?.toUpperCase()}
                                                     </CBadge>
                                                 </CTableDataCell>
@@ -255,44 +247,9 @@ const Users = () => {
                                                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                                                 </CTableDataCell>
                                                 <CTableDataCell className="text-center">
-                                                    <div className="d-flex gap-2 justify-content-center">
-                                                        <CButton
-                                                            color="primary"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="rounded-circle p-2"
-                                                            style={{ width: '32px', height: '32px' }}
-                                                            title="View"
-                                                        >
-                                                            <CIcon icon={cilZoom} />
-                                                        </CButton>
-                                                        <CButton
-                                                            color="info"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="rounded-circle p-2"
-                                                            style={{ width: '32px', height: '32px' }}
-                                                            title="Edit"
-                                                            onClick={() => handleEdit(user)}
-                                                        >
-                                                            <CIcon icon={cilPencil} />
-                                                        </CButton>
-                                                        <CDropdown>
-                                                            <CDropdownToggle
-                                                                color="secondary"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="rounded-circle p-2"
-                                                                style={{ width: '32px', height: '32px' }}
-                                                            >
-                                                                <CIcon icon={cilOptions} />
-                                                            </CDropdownToggle>
-                                                            <CDropdownMenu>
-                                                                <CDropdownItem>Delete</CDropdownItem>
-                                                                <CDropdownItem>Suspend</CDropdownItem>
-                                                            </CDropdownMenu>
-                                                        </CDropdown>
-                                                    </div>
+                                                    <CButton color="info" variant="ghost" size="sm" onClick={() => handleEdit(user)}>
+                                                        <CIcon icon={cilPencil} />
+                                                    </CButton>
                                                 </CTableDataCell>
                                             </CTableRow>
                                         ))
@@ -300,227 +257,101 @@ const Users = () => {
                                 </CTableBody>
                             </CTable>
                         </div>
-
-                        {/* Pagination Footer */}
-                        <div className="d-flex justify-content-between align-items-center p-3 border-top">
-                            <small className="text-muted">
-                                Showing {filteredUsers.length} of {users.length} entries
-                            </small>
-                            <div className="d-flex gap-2 align-items-center">
-                                <CButton size="sm" variant="outline" disabled>«</CButton>
-                                <CButton size="sm" variant="outline" disabled>‹</CButton>
-                                <CButton size="sm" color="primary">1</CButton>
-                                <CButton size="sm" variant="outline" disabled>›</CButton>
-                                <CButton size="sm" variant="outline" disabled>»</CButton>
-                                <select className="form-select form-select-sm ms-2" style={{ width: 'auto' }}>
-                                    <option>25</option>
-                                    <option>50</option>
-                                    <option>100</option>
-                                </select>
-                            </div>
-                        </div>
                     </CCardBody>
                 </CCard>
             </CCol>
 
-            {/* Registration Modal */}
-            <CModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                size="lg"
-                backdrop="static"
-            >
+            <CModal visible={modalVisible} onClose={() => setModalVisible(false)} backdrop="static" size="lg">
                 <CModalHeader>
-                    <CModalTitle>{editingUser ? 'Edit User' : 'Register New User'}</CModalTitle>
+                    <CModalTitle>{editingUser ? 'Edit User' : 'Add User'}</CModalTitle>
                 </CModalHeader>
                 <CModalBody>
-                    <CForm>
-                        <CRow className="mb-3">
-                            <CCol md={12}>
-                                <CFormLabel htmlFor="fullName">Full Name</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilFile} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="fullName"
-                                        placeholder="Enter full name"
-                                        value={formData.fullName}
-                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                        </CRow>
+                    <CForm className="modal-form-grid">
+                        <div className="mb-3">
+                            <CFormLabel>Full Name</CFormLabel>
+                            <CFormInput
+                                placeholder="e.g. John Doe"
+                                value={formData.fullName}
+                                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <CFormLabel>Email</CFormLabel>
+                            <CFormInput
+                                type="email"
+                                placeholder="name@example.com"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
 
-                        <CRow className="mb-3">
-                            <CCol md={12}>
-                                <CFormLabel htmlFor="userType">User Type</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilUser} />
-                                    </CInputGroupText>
-                                    <CFormSelect
-                                        id="userType"
-                                        value={formData.userType}
-                                        onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
-                                    >
-                                        <option value="">Select user type</option>
-                                        <option value="buyer">Buyer</option>
-                                        <option value="seller">Seller</option>
-                                        <option value="admin">Admin</option>
-                                    </CFormSelect>
-                                </CInputGroup>
-                            </CCol>
-                        </CRow>
+                        <div className="mb-3">
+                            <CFormLabel>Phone</CFormLabel>
+                            <CFormInput
+                                placeholder="0768 000 000"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            />
+                        </div>
 
-                        <CRow className="mb-3">
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="email">Email Address</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilEnvelopeClosed} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="email"
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="phone">Phone Number</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilPhone} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="phone"
-                                        placeholder="Enter phone number"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                        </CRow>
+                        <div className="mb-3">
+                            <CFormLabel>TIN Number</CFormLabel>
+                            <CFormInput
+                                placeholder="TIN Number"
+                                value={formData.tinNo}
+                                onChange={(e) => setFormData({ ...formData, tinNo: e.target.value })}
+                            />
+                        </div>
 
-                        <CRow className="mb-3">
-                            <CCol md={12}>
-                                <CFormLabel htmlFor="address">Address</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilLocationPin} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="address"
-                                        placeholder="Enter business address"
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                        </CRow>
+                        <div className="mb-3">
+                            <CFormLabel>Business Licence</CFormLabel>
+                            <CFormInput
+                                placeholder="Business Licence"
+                                value={formData.businessLicence}
+                                onChange={(e) => setFormData({ ...formData, businessLicence: e.target.value })}
+                            />
+                        </div>
 
-                        <CRow className="mb-3">
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="tinNumber">TIN Number</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilFile} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="tinNumber"
-                                        placeholder="Enter TIN number"
-                                        value={formData.tinNumber}
-                                        onChange={(e) => setFormData({ ...formData, tinNumber: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="certificate">Upload Certificate</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilCloudUpload} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="certificate"
-                                        type="file"
-                                        onChange={(e) => setFormData({ ...formData, certificate: e.target.files[0] })}
-                                    />
-                                </CInputGroup>
-                                <small className="text-muted">
-                                    {formData.certificate ? formData.certificate.name : 'No file chosen'}
-                                </small>
-                            </CCol>
-                        </CRow>
+                        {currentUser?.type === 'admin' && (
+                            <div className="mb-3">
+                                <CFormLabel>User Type</CFormLabel>
+                                <CFormSelect
+                                    value={formData.userType}
+                                    onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
+                                    disabled={!!editingUser}
+                                >
+                                    <option value="">Select Type</option>
+                                    <option value="buyer">Buyer</option>
+                                    <option value="seller">Seller</option>
+                                    <option value="admin">Admin</option>
+                                </CFormSelect>
+                            </div>
+                        )}
 
-                        <CRow className="mb-3">
-                            <CCol md={12}>
-                                <CFormLabel htmlFor="businessLicense">Business License</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilCloudUpload} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="businessLicense"
-                                        type="file"
-                                        onChange={(e) => setFormData({ ...formData, businessLicense: e.target.files[0] })}
-                                    />
-                                </CInputGroup>
-                                <small className="text-muted">
-                                    {formData.businessLicense ? formData.businessLicense.name : 'No file chosen'}
-                                </small>
-                            </CCol>
-                        </CRow>
-
-                        <CRow className="mb-3">
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="password">Password</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilLockLocked} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="password"
-                                        type="password"
-                                        placeholder="Create password"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                            <CCol md={6}>
-                                <CFormLabel htmlFor="confirmPassword">Confirm Password</CFormLabel>
-                                <CInputGroup>
-                                    <CInputGroupText className="bg-light">
-                                        <CIcon icon={cilLockLocked} />
-                                    </CInputGroupText>
-                                    <CFormInput
-                                        id="confirmPassword"
-                                        type="password"
-                                        placeholder="Confirm password"
-                                        value={formData.confirmPassword}
-                                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    />
-                                </CInputGroup>
-                            </CCol>
-                        </CRow>
+                        <div className="mb-3">
+                            <CFormLabel>Password {editingUser && <span className="text-muted fw-normal">(Leave blank to keep current)</span>}</CFormLabel>
+                            <CFormInput
+                                type="password"
+                                placeholder="••••••••"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <CFormLabel>Confirm Password</CFormLabel>
+                            <CFormInput
+                                type="password"
+                                placeholder="••••••••"
+                                value={formData.confirmPassword}
+                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                            />
+                        </div>
                     </CForm>
                 </CModalBody>
                 <CModalFooter>
-                    <CButton color="secondary" onClick={() => setModalVisible(false)} disabled={submitLoading}>
-                        Cancel
-                    </CButton>
+                    <CButton color="secondary" variant="outline" onClick={() => setModalVisible(false)}>Cancel</CButton>
                     <CButton color="primary" onClick={handleSubmit} disabled={submitLoading}>
-                        {submitLoading ? (
-                            <>
-                                <CSpinner size="sm" className="me-2" />
-                                {editingUser ? 'Updating...' : 'Creating...'}
-                            </>
-                        ) : (
-                            editingUser ? 'Update User' : 'Create Account'
-                        )}
+                        {submitLoading ? <CSpinner size="sm" /> : (editingUser ? 'Update User' : 'Create User')}
                     </CButton>
                 </CModalFooter>
             </CModal>

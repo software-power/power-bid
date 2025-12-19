@@ -27,8 +27,8 @@ import axios from 'axios'
 const Login = () => {
   const navigate = useNavigate()
   // Default credentials as requested
-  const [email, setEmail] = useState('admin@powercomputers.net')
-  const [password, setPassword] = useState('123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
@@ -53,7 +53,7 @@ const Login = () => {
     setLoading(true)
     try {
       // Assuming backend is running on default port 9095 based on server.js analysis
-      const response = await axios.post('http://localhost:9095/users/login', {
+      const response = await axios.post('http://10.10.100.15:9095/users/login', {
         email: email,
         password: password
       })

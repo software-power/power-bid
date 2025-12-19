@@ -12,14 +12,14 @@ const {
 } = require('../Controllers/usersController');
 
 // Middleware
-const { AccessTokenVerifier, requireOwnerRole } = require('../Middleware/tokenAuth');
+const { AccessTokenVerifier, requireOwnerRole, requireAdmin } = require('../Middleware/tokenAuth');
 
 // Public routes
 router.post('/login', userLogin);
 router.post('/register', registerMainAccount);
 
 // Protected routes (require authentication)
-router.get('/', AccessTokenVerifier, getUsers);
+router.get('/', AccessTokenVerifier, requireAdmin, getUsers);
 router.get('/sub-accounts', AccessTokenVerifier, getMySubAccounts);
 router.put('/:id', AccessTokenVerifier, updateUserDetails);
 

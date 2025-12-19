@@ -8,6 +8,20 @@ const Typography = React.lazy(() => import('./views/theme/typography/Typography'
 // Users
 const Users = React.lazy(() => import('./views/users/Users'))
 
+// Master
+const AttachmentTypes = React.lazy(() => import('./views/master/AttachmentTypes'))
+const Certificates = React.lazy(() => import('./views/seller/Certificates'))
+
+// Buyer
+const AddQuotation = React.lazy(() => import('./views/buyer/AddQuotation'))
+const Quotations = React.lazy(() => import('./views/buyer/Quotations'))
+const QuotationComparison = React.lazy(() => import('./views/buyer/QuotationComparison'))
+
+// Seller
+const InvitedQuotations = React.lazy(() => import('./views/seller/InvitedQuotations'))
+const SubmittedQuotations = React.lazy(() => import('./views/seller/SubmittedQuotations'))
+const SubmitQuotation = React.lazy(() => import('./views/seller/SubmitQuotation'))
+
 // Buttons
 const Buttons = React.lazy(() => import('./views/buttons/buttons/Buttons'))
 const ButtonGroups = React.lazy(() => import('./views/buttons/button-groups/ButtonGroups'))
@@ -78,6 +92,17 @@ const routes = [
   // { path: '/notifications/toasts', name: 'Toasts', element: Toasts },
   // { path: '/widgets', name: 'Widgets', element: Widgets },
   { path: '/users', name: 'Users', element: Users },
+  { path: '/buyer/users', name: 'Buyer Users', element: Users },
+  { path: '/buyer/add-quotation', name: 'Add Quotation', element: AddQuotation },
+  { path: '/buyer/my-quotations', name: 'My Quotations', element: Quotations },
+  { path: '/buyer/quotation-comparison/:tenderId', name: 'Quotation Comparison', element: QuotationComparison },
+  { path: '/seller/users', name: 'Seller Users', element: Users },
+  { path: '/seller/invited-quotations', name: 'Invited Quotations', element: InvitedQuotations },
+  { path: '/seller/my-quotations', name: 'My Quotations', element: SubmittedQuotations },
+  { path: '/seller/submit-quotation/:token', name: 'Submit Quotation', element: SubmitQuotation },
+  { path: '/seller/submit-quotation/tender/:tenderId', name: 'Submit Quotation', element: SubmitQuotation },
+  { path: '/master/attachment-types', name: 'Attachment Types', element: AttachmentTypes },
+  { path: '/seller/certificates', name: 'Certificates Attachments', element: Certificates },
 ]
 
 export default routes
