@@ -13,10 +13,10 @@
   "license": "MIT",
   "author": "The CoreUI Team (https://github.com/orgs/coreui/people)",
   "scripts": {
+    "dev": "vite",
     "build": "vite build",
-    "lint": "eslint",
-    "serve": "vite preview",
-    "start": "vite"
+    "preview": "vite preview",
+    "lint": "eslint"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.1.0",
@@ -38,20 +38,27 @@
     "react-router-dom": "^7.9.5",
     "react-toastify": "^11.0.5",
     "redux": "5.0.1",
-    "simplebar-react": "^3.3.2"
+    "simplebar-react": "^3.3.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.1.0",
+    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9.38.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^16.4.0",
     "postcss": "^8.5.6",
     "prettier": "3.6.2",
     "sass": "^1.93.2",
-    "vite": "^7.1.12"
+    "vite": "^5.0.12"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

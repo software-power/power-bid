@@ -14,15 +14,14 @@ import {
   CRow,
   CToast,
   CToastBody,
-  CToastHeader,
   CToaster,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilHome, cilBriefcase, cilCommentBubble, cilUser, cilLockLocked, cilLowVision, cilAddressBook } from '@coreui/icons'
+import { cilLockLocked, cilLowVision, cilAddressBook } from '@coreui/icons'
+import { userAPI } from '../../../services/userService'
 
 const cilEye = ["512 512", "<path class='ci-primary' d='M256,64C140.552,64,42.32,156.402,10.666,218.062 c-3.928,7.662-3.928,16.214,0,23.876C42.32,303.598,140.552,396,256,396c115.448,0,213.68-92.402,245.334-154.062 c3.928-7.662,3.928-16.214,0-23.876C469.68,156.402,371.448,64,256,64z M256,356c-99.256,0-196.406-82.532-232.022-135.5 c35.616-52.968,132.766-135.5,232.022-135.5c99.256,0,196.406,82.532,232.022,135.5C452.406,273.468,355.256,356,256,356z M256,120 c-61.856,0-112,50.144-112,112s50.144,112,112,112s112-50.144,112-112S317.856,120,256,120z M256,304c-44.183,0-80-35.817-80-80 s35.817-80,80-80s80,35.817,80,80S300.183,304,256,304z'/>"]
 import logo from '../../../assets/images/logo.png'
-import axios from 'axios'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -52,25 +51,18 @@ const Login = () => {
 
     setLoading(true)
     try {
-      // Assuming backend is running on default port 9095 based on server.js analysis
-      const response = await axios.post('http://10.10.100.15:9095/users/login', {
-        email: email,
-        password: password
-      })
+      const response = await userAPI.login(email, password)
 
-      if (response.data.status === 'success') {
-        // Store token and user data
-        localStorage.setItem('token', response.data.token)
-        localStorage.setItem('user', JSON.stringify(response.data.data))
-
+      if (response.status === 'success') {
+        // Token and user data are already stored in userService.js
         // Navigate to dashboard
         navigate('/dashboard')
       } else {
-        addToast(response.data.message || 'Login failed')
+        addToast(response.message || 'Login failed')
       }
     } catch (error) {
       console.error('Login error:', error)
-      addToast(error.response?.data?.message || 'Failed to connect to server')
+      addToast(error.message || 'Failed to connect to server')
     } finally {
       setLoading(false)
     }

@@ -23,7 +23,8 @@ import {
     CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPlus, cilTrash, cilSend } from '@coreui/icons'
+import { cilPlus, cilTrash, cilSend, cilCloudDownload } from '@coreui/icons'
+import * as XLSX from 'xlsx'
 import { tenderAPI } from '../../services/tenderService'
 
 const AddQuotation = () => {
@@ -107,6 +108,98 @@ const AddQuotation = () => {
         setInvitedEmails(invitedEmails.filter((e) => e !== email))
     }
 
+    // Download Excel Template
+    const handleDownloadTemplate = () => {
+        const headers = [
+            'Item Name',
+            'Brand',
+            'Country of Origin',
+            'Strength',
+            'Unit of Measure',
+            'Quantity',
+            'Allow Alternative',
+            'Remarks'
+        ]
+
+        // Create a worksheet
+        const ws = XLSX.utils.aoa_to_sheet([headers])
+
+        // Set column widths
+        const wscols = [
+            { wch: 30 }, // Item Name
+            { wch: 15 }, // Brand
+            { wch: 20 }, // Country of Origin
+            { wch: 15 }, // Strength
+            { wch: 15 }, // Unit of Measure
+            { wch: 15 }, // Quantity
+            { wch: 15 }, // Allow Alternative
+            { wch: 30 }, // Remarks
+        ]
+        ws['!cols'] = wscols
+
+        // Create a workbook
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Tender Items')
+
+        // Generate file
+        XLSX.writeFile(wb, 'tender_items_template.xlsx')
+    }
+
+    // File Upload Ref
+    const fileInputRef = useRef(null)
+
+    const handleUploadClick = () => {
+        fileInputRef.current.click()
+    }
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (evt) => {
+            try {
+                const bstr = evt.target.result
+                const wb = XLSX.read(bstr, { type: 'binary' })
+                const wsname = wb.SheetNames[0]
+                const ws = wb.Sheets[wsname]
+                const data = XLSX.utils.sheet_to_json(ws)
+
+                if (data.length === 0) {
+                    addToast('Excel file is empty', 'warning')
+                    return
+                }
+
+                const newItems = data.map(row => ({
+                    itemName: row['Item Name'] || '',
+                    brand: row['Brand'] || '',
+                    countryOfOrigin: row['Country of Origin'] || '',
+                    strength: row['Strength'] || '',
+                    unitOfMeasure: row['Unit of Measure'] || '',
+                    qty: row['Quantity'] || 1,
+                    allowAlternative: (row['Allow Alternative'] && row['Allow Alternative'].toString().toLowerCase() === 'yes') ? true : false
+                }))
+
+                // Filter out default empty row if present and untouched
+                let currentItems = [...items]
+                if (currentItems.length === 1 && !currentItems[0].itemName && !currentItems[0].unitOfMeasure) {
+                    currentItems = []
+                }
+
+                setItems([...currentItems, ...newItems])
+                addToast(`Successfully imported ${newItems.length} items from ${file.name}`)
+
+                // Clear input
+                e.target.value = null
+
+            } catch (error) {
+                console.error('Error parsing Excel:', error)
+                addToast('Failed to parse Excel file. Please check format.', 'danger')
+            }
+        }
+        reader.readAsBinaryString(file)
+    }
+
     // Submit Form
     const handleSubmit = async () => {
         if (!tenderData.title) {
@@ -179,7 +272,26 @@ const AddQuotation = () => {
                             </div>
 
                             {/* Items Section */}
-                            <h5 className="mt-4 mb-3">Items Required</h5>
+                            <div className="d-flex justify-content-between align-items-center mt-4 mb-3">
+                                <h5 className="mb-0">Items Required</h5>
+                                <div>
+                                    <input
+                                        type="file"
+                                        accept=".xlsx, .xls"
+                                        ref={fileInputRef}
+                                        style={{ display: 'none' }}
+                                        onChange={handleFileUpload}
+                                    />
+                                    <CButton color="primary" size="sm" variant="outline" className="me-2" onClick={handleUploadClick}>
+                                        <CIcon icon={cilCloudDownload} className="me-2" style={{ transform: 'rotate(180deg)' }} />
+                                        Upload Excel
+                                    </CButton>
+                                    <CButton color="success" size="sm" variant="outline" onClick={handleDownloadTemplate}>
+                                        <CIcon icon={cilCloudDownload} className="me-2" />
+                                        Download Template
+                                    </CButton>
+                                </div>
+                            </div>
                             <div className="table-responsive">
                                 <CTable bordered>
                                     <CTableHead>
