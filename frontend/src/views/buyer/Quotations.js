@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CBadge,
-    CButton,
-    CSpinner,
-} from '@coreui/react';
 import { useNavigate } from 'react-router-dom';
 import { tenderAPI } from '../../services/tenderService';
-import CIcon from '@coreui/icons-react';
-import { cilPlus } from '@coreui/icons';
 
 const Quotations = () => {
     const [tenders, setTenders] = useState([]);
@@ -56,95 +38,107 @@ const Quotations = () => {
             draft: 'secondary',
             closed: 'danger',
         };
+        const color = statusColors[status] || 'primary';
         return (
-            <CBadge color={statusColors[status] || 'primary'}>
+            <span className={`badge bg-${color}`}>
                 {status.toUpperCase()}
-            </CBadge>
+            </span>
         );
     };
 
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader className="d-flex justify-content-between align-items-center">
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
                         <strong>My Quotations</strong>
-                        <CButton
-                            color="primary"
-                            size="sm"
+                        <button
+                            className="btn btn-primary btn-sm"
                             onClick={() => navigate('/buyer/add-quotation')}
                         >
-                            <CIcon icon={cilPlus} className="me-2" />
+                            <span className="me-2">+</span>
                             Create New Quotation
-                        </CButton>
-                    </CCardHeader>
-                    <CCardBody>
+                        </button>
+                    </div>
+                    <div className="card-body">
                         {loading ? (
                             <div className="text-center py-5">
-                                <CSpinner color="primary" />
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
                             </div>
                         ) : tenders.length === 0 ? (
                             <div className="text-center py-5 text-muted">
                                 <p>No quotations found.</p>
-                                <CButton
-                                    color="primary"
-                                    variant="outline"
+                                <button
+                                    className="btn btn-outline-primary"
                                     onClick={() => navigate('/buyer/add-quotation')}
                                 >
                                     Create Your First Quotation
-                                </CButton>
+                                </button>
                             </div>
                         ) : (
-                            <CTable hover responsive>
-                                <CTableHead>
-                                    <CTableRow>
-                                        <CTableHeaderCell scope="col">#</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Title</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Description</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Items</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Invitations</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Status</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Created</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Actions</CTableHeaderCell>
-                                    </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
-                                    {tenders.map((tender, index) => (
-                                        <CTableRow key={tender.id}>
-                                            <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                                            <CTableDataCell>
-                                                <strong>{tender.title}</strong>
-                                            </CTableDataCell>
-                                            <CTableDataCell>
-                                                {tender.description?.substring(0, 60)}
-                                                {tender.description?.length > 60 ? '...' : ''}
-                                            </CTableDataCell>
-                                            <CTableDataCell>
-                                                <CBadge color="info">{tender.item_count || 0}</CBadge>
-                                            </CTableDataCell>
-                                            <CTableDataCell>
-                                                <CBadge color="warning">{tender.invite_count || 0}</CBadge>
-                                            </CTableDataCell>
-                                            <CTableDataCell>{getStatusBadge(tender.status)}</CTableDataCell>
-                                            <CTableDataCell>{formatDate(tender.created_at)}</CTableDataCell>
-                                            <CTableDataCell>
-                                                <CButton
-                                                    color="info"
-                                                    size="sm"
-                                                    onClick={() => navigate(`/buyer/quotation-comparison/${tender.id}`)}
-                                                >
-                                                    View Comparison
-                                                </CButton>
-                                            </CTableDataCell>
-                                        </CTableRow>
-                                    ))}
-                                </CTableBody>
-                            </CTable>
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Title</th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col">Items</th>
+                                            <th scope="col">Invitations</th>
+                                            <th scope="col">Start Date</th>
+                                            <th scope="col">End Date</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Created</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tenders.map((tender, index) => (
+                                            <tr key={tender.id}>
+                                                <th scope="row">{index + 1}</th>
+                                                <td>
+                                                    <strong>{tender.title}</strong>
+                                                </td>
+                                                <td>
+                                                    {tender.description?.substring(0, 60)}
+                                                    {tender.description?.length > 60 ? '...' : ''}
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-info text-dark">{tender.item_count || 0}</span>
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-warning text-dark">{tender.invite_count || 0}</span>
+                                                </td>
+                                                <td>{formatDate(tender.start_date)}</td>
+                                                <td>{formatDate(tender.end_date)}</td>
+                                                <td>{getStatusBadge(tender.status)}</td>
+                                                <td>{formatDate(tender.created_at)}</td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-warning btn-sm me-2 text-white"
+                                                        onClick={() => navigate(`/buyer/edit-quotation/${tender.id}`)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-info btn-sm text-white"
+                                                        onClick={() => navigate(`/buyer/quotation-comparison/${tender.id}`)}
+                                                    >
+                                                        View Comparison
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </CCardBody>
-                </CCard>
-            </CCol>
-        </CRow>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

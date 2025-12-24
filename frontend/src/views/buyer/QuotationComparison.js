@@ -1,26 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CButton,
-    CSpinner,
-    CAlert,
-    CBadge,
-} from '@coreui/react';
 import { quotationAPI } from '../../services/quotationService';
 import { toast } from 'react-toastify';
-import CIcon from '@coreui/icons-react';
-import { cilCheckCircle } from '@coreui/icons';
 
 const QuotationComparison = () => {
     const { tenderId } = useParams();
@@ -74,79 +55,81 @@ const QuotationComparison = () => {
     if (loading) {
         return (
             <div className="text-center py-5">
-                <CSpinner color="primary" />
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
             </div>
         );
     }
 
     if (comparison.length === 0) {
         return (
-            <CAlert color="info">
+            <div className="alert alert-info" role="alert">
                 No quotations have been submitted yet.
-            </CAlert>
+            </div>
         );
     }
 
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader>
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header">
                         <strong>Quotation Comparison</strong>
-                        <CBadge color="info" className="ms-2">
+                        <span className="badge bg-info text-dark ms-2">
                             {comparison.length} Items
-                        </CBadge>
-                    </CCardHeader>
-                    <CCardBody>
+                        </span>
+                    </div>
+                    <div className="card-body">
                         <div className="table-responsive">
-                            <CTable bordered hover>
-                                <CTableHead>
-                                    <CTableRow>
-                                        <CTableHeaderCell rowSpan={2} className="align-middle">#</CTableHeaderCell>
-                                        <CTableHeaderCell rowSpan={2} className="align-middle">Item Name</CTableHeaderCell>
-                                        <CTableHeaderCell rowSpan={2} className="align-middle">Brand</CTableHeaderCell>
-                                        <CTableHeaderCell rowSpan={2} className="align-middle">Qty</CTableHeaderCell>
-                                        <CTableHeaderCell rowSpan={2} className="align-middle">UoM</CTableHeaderCell>
-                                        <CTableHeaderCell colSpan={5} className="text-center bg-light">
+                            <table className="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th rowSpan={2} className="align-middle">#</th>
+                                        <th rowSpan={2} className="align-middle">Item Name</th>
+                                        <th rowSpan={2} className="align-middle">Brand</th>
+                                        <th rowSpan={2} className="align-middle">Qty</th>
+                                        <th rowSpan={2} className="align-middle">UoM</th>
+                                        <th colSpan={5} className="text-center bg-light">
                                             Top 5 Suppliers (Lowest Price First)
-                                        </CTableHeaderCell>
-                                    </CTableRow>
-                                    <CTableRow>
-                                        <CTableHeaderCell className="text-center bg-light">1st</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center bg-light">2nd</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center bg-light">3rd</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center bg-light">4th</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center bg-light">5th</CTableHeaderCell>
-                                    </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th className="text-center bg-light">1st</th>
+                                        <th className="text-center bg-light">2nd</th>
+                                        <th className="text-center bg-light">3rd</th>
+                                        <th className="text-center bg-light">4th</th>
+                                        <th className="text-center bg-light">5th</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {comparison.map((itemData, index) => {
                                         const lowestPrice = getLowestPrice(itemData.suppliers);
                                         const suppliers = itemData.suppliers || [];
 
                                         return (
-                                            <CTableRow key={itemData.item.id}>
-                                                <CTableDataCell>{index + 1}</CTableDataCell>
-                                                <CTableDataCell>
+                                            <tr key={itemData.item.id}>
+                                                <td>{index + 1}</td>
+                                                <td>
                                                     <strong>{itemData.item.name}</strong>
-                                                </CTableDataCell>
-                                                <CTableDataCell>{itemData.item.brand || '-'}</CTableDataCell>
-                                                <CTableDataCell>{itemData.item.qty}</CTableDataCell>
-                                                <CTableDataCell>{itemData.item.uom}</CTableDataCell>
+                                                </td>
+                                                <td>{itemData.item.brand || '-'}</td>
+                                                <td>{itemData.item.qty}</td>
+                                                <td>{itemData.item.uom}</td>
 
                                                 {/* Render up to 5 supplier columns */}
                                                 {[0, 1, 2, 3, 4].map(supplierIndex => {
                                                     const supplier = suppliers[supplierIndex];
 
                                                     if (!supplier) {
-                                                        return <CTableDataCell key={supplierIndex} className="text-center text-muted">-</CTableDataCell>;
+                                                        return <td key={supplierIndex} className="text-center text-muted">-</td>;
                                                     }
 
                                                     const isLowest = parseFloat(supplier.final_price) === lowestPrice;
                                                     const isSelected = supplier.is_selected;
 
                                                     return (
-                                                        <CTableDataCell
+                                                        <td
                                                             key={supplierIndex}
                                                             className={`text-center ${isLowest ? 'bg-success bg-opacity-10' : ''}`}
                                                         >
@@ -168,33 +151,34 @@ const QuotationComparison = () => {
                                                             )}
                                                             <div className="mt-2">
                                                                 {isSelected ? (
-                                                                    <CBadge color="success">
-                                                                        <CIcon icon={cilCheckCircle} className="me-1" />
+                                                                    <span className="badge bg-success">
+                                                                        <span className="me-1">✓</span>
                                                                         Selected
-                                                                    </CBadge>
+                                                                    </span>
                                                                 ) : (
-                                                                    <CButton
-                                                                        color="primary"
-                                                                        size="sm"
+                                                                    <button
+                                                                        className="btn btn-primary btn-sm"
                                                                         onClick={() => handleSelectSupplier(itemData.item.id, supplier.quotation_id)}
                                                                         disabled={selecting[itemData.item.id]}
                                                                     >
                                                                         {selecting[itemData.item.id] ? (
-                                                                            <CSpinner size="sm" />
+                                                                            <div className="spinner-border spinner-border-sm" role="status">
+                                                                                <span className="visually-hidden">Loading...</span>
+                                                                            </div>
                                                                         ) : (
                                                                             'Accept'
                                                                         )}
-                                                                    </CButton>
+                                                                    </button>
                                                                 )}
                                                             </div>
-                                                        </CTableDataCell>
+                                                        </td>
                                                     );
                                                 })}
-                                            </CTableRow>
+                                            </tr>
                                         );
                                     })}
-                                </CTableBody>
-                            </CTable>
+                                </tbody>
+                            </table>
                         </div>
 
                         {/* Summary Section */}
@@ -205,10 +189,10 @@ const QuotationComparison = () => {
                                 Click "Accept" to select a supplier for each item.
                             </p>
                         </div>
-                    </CCardBody>
-                </CCard>
-            </CCol>
-        </CRow>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

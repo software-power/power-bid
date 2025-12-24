@@ -1,16 +1,30 @@
 import React from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 
 import routes from '../routes'
-
-import { CBreadcrumb, CBreadcrumbItem } from '@coreui/react'
 
 const AppBreadcrumb = () => {
   const currentLocation = useLocation().pathname
 
   const getRouteName = (pathname, routes) => {
+    // Exact match
     const currentRoute = routes.find((route) => route.path === pathname)
-    return currentRoute ? currentRoute.name : false
+    if (currentRoute) return currentRoute.name
+
+    // Pattern match for routes with parameters (e.g., /edit-quotation/:id)
+    const matchedRoute = routes.find(route => {
+      if (!route.path) return false;
+      const routePath = route.path.split('/');
+      const currentPath = pathname.split('/');
+
+      if (routePath.length !== currentPath.length) return false;
+
+      return routePath.every((segment, i) => {
+        return segment.startsWith(':') || segment === currentPath[i];
+      });
+    });
+
+    return matchedRoute ? matchedRoute.name : false
   }
 
   const getBreadcrumbs = (location) => {
@@ -32,19 +46,28 @@ const AppBreadcrumb = () => {
   const breadcrumbs = getBreadcrumbs(currentLocation)
 
   return (
-    <CBreadcrumb className="my-0">
-      <CBreadcrumbItem href="/">Home</CBreadcrumbItem>
-      {breadcrumbs.map((breadcrumb, index) => {
-        return (
-          <CBreadcrumbItem
-            {...(breadcrumb.active ? { active: true } : { href: breadcrumb.pathname })}
-            key={index}
-          >
-            {breadcrumb.name}
-          </CBreadcrumbItem>
-        )
-      })}
-    </CBreadcrumb>
+    <nav aria-label="breadcrumb">
+      <ol className="breadcrumb my-0">
+        <li className="breadcrumb-item">
+          <Link to="/">Home</Link>
+        </li>
+        {breadcrumbs.map((breadcrumb, index) => {
+          return (
+            <li
+              className={`breadcrumb-item ${breadcrumb.active ? 'active' : ''}`}
+              key={index}
+              {...(breadcrumb.active ? { 'aria-current': 'page' } : {})}
+            >
+              {breadcrumb.active ? (
+                breadcrumb.name
+              ) : (
+                <Link to={breadcrumb.pathname}>{breadcrumb.name}</Link>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
 }
 

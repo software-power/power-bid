@@ -1,176 +1,85 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { CWidgetStatsD, CRow, CCol } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cibFacebook, cibLinkedin, cibTwitter, cilCalendar } from '@coreui/icons'
-import { CChart } from '@coreui/react-chartjs'
 
 const WidgetsBrand = (props) => {
-  const chartOptions = {
-    elements: {
-      line: {
-        tension: 0.4,
-      },
-      point: {
-        radius: 0,
-        hitRadius: 10,
-        hoverRadius: 4,
-        hoverBorderWidth: 3,
-      },
-    },
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        display: false,
-      },
-      y: {
-        display: false,
-      },
-    },
-  }
-
   return (
-    <CRow className={props.className} xs={{ gutter: 4 }}>
-      <CCol sm={6} xl={4} xxl={3}>
-        <CWidgetStatsD
-          {...(props.withCharts && {
-            chart: (
-              <CChart
-                className="position-absolute w-100 h-100"
-                type="line"
-                data={{
-                  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                  datasets: [
-                    {
-                      backgroundColor: 'rgba(255,255,255,.1)',
-                      borderColor: 'rgba(255,255,255,.55)',
-                      pointHoverBackgroundColor: '#fff',
-                      borderWidth: 2,
-                      data: [65, 59, 84, 84, 51, 55, 40],
-                      fill: true,
-                    },
-                  ],
-                }}
-                options={chartOptions}
-              />
-            ),
-          })}
-          icon={<CIcon icon={cibFacebook} height={52} className="my-4 text-white" />}
-          values={[
-            { title: 'friends', value: '89K' },
-            { title: 'feeds', value: '459' },
-          ]}
-          style={{
-            '--cui-card-cap-bg': '#3b5998',
-          }}
-        />
-      </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
-        <CWidgetStatsD
-          {...(props.withCharts && {
-            chart: (
-              <CChart
-                className="position-absolute w-100 h-100"
-                type="line"
-                data={{
-                  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                  datasets: [
-                    {
-                      backgroundColor: 'rgba(255,255,255,.1)',
-                      borderColor: 'rgba(255,255,255,.55)',
-                      pointHoverBackgroundColor: '#fff',
-                      borderWidth: 2,
-                      data: [1, 13, 9, 17, 34, 41, 38],
-                      fill: true,
-                    },
-                  ],
-                }}
-                options={chartOptions}
-              />
-            ),
-          })}
-          icon={<CIcon icon={cibTwitter} height={52} className="my-4 text-white" />}
-          values={[
-            { title: 'followers', value: '973k' },
-            { title: 'tweets', value: '1.792' },
-          ]}
-          style={{
-            '--cui-card-cap-bg': '#00aced',
-          }}
-        />
-      </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
-        <CWidgetStatsD
-          {...(props.withCharts && {
-            chart: (
-              <CChart
-                className="position-absolute w-100 h-100"
-                type="line"
-                data={{
-                  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                  datasets: [
-                    {
-                      backgroundColor: 'rgba(255,255,255,.1)',
-                      borderColor: 'rgba(255,255,255,.55)',
-                      pointHoverBackgroundColor: '#fff',
-                      borderWidth: 2,
-                      data: [78, 81, 80, 45, 34, 12, 40],
-                      fill: true,
-                    },
-                  ],
-                }}
-                options={chartOptions}
-              />
-            ),
-          })}
-          icon={<CIcon icon={cibLinkedin} height={52} className="my-4 text-white" />}
-          values={[
-            { title: 'contacts', value: '500' },
-            { title: 'feeds', value: '1.292' },
-          ]}
-          style={{
-            '--cui-card-cap-bg': '#4875b4',
-          }}
-        />
-      </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
-        <CWidgetStatsD
-          color="warning"
-          {...(props.withCharts && {
-            chart: (
-              <CChart
-                className="position-absolute w-100 h-100"
-                type="line"
-                data={{
-                  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                  datasets: [
-                    {
-                      backgroundColor: 'rgba(255,255,255,.1)',
-                      borderColor: 'rgba(255,255,255,.55)',
-                      pointHoverBackgroundColor: '#fff',
-                      borderWidth: 2,
-                      data: [35, 23, 56, 22, 97, 23, 64],
-                      fill: true,
-                    },
-                  ],
-                }}
-                options={chartOptions}
-              />
-            ),
-          })}
-          icon={<CIcon icon={cilCalendar} height={52} className="my-4 text-white" />}
-          values={[
-            { title: 'events', value: '12+' },
-            { title: 'meetings', value: '4' },
-          ]}
-        />
-      </CCol>
-    </CRow>
+    <div className={`row ${props.className || ''} g-4`}>
+      {/* Facebook Widget */}
+      <div className="col-sm-6 col-xl-4 col-xxl-3">
+        <div className="card text-white" style={{ backgroundColor: '#3b5998' }}>
+          <div className="card-header border-0 d-flex justify-content-center py-4 bg-transparent">
+            <span style={{ fontSize: '3rem' }}>f</span>
+          </div>
+          <div className="card-body row text-center bg-white text-dark rounded-bottom p-2 mx-0">
+            <div className="col border-end pt-2">
+              <div className="fs-5 fw-bold">89K</div>
+              <div className="text-uppercase text-muted small">friends</div>
+            </div>
+            <div className="col pt-2">
+              <div className="fs-5 fw-bold">459</div>
+              <div className="text-uppercase text-muted small">feeds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Twitter Widget */}
+      <div className="col-sm-6 col-xl-4 col-xxl-3">
+        <div className="card text-white" style={{ backgroundColor: '#00aced' }}>
+          <div className="card-header border-0 d-flex justify-content-center py-4 bg-transparent">
+            <span style={{ fontSize: '3rem' }}>🐦</span>
+          </div>
+          <div className="card-body row text-center bg-white text-dark rounded-bottom p-2 mx-0">
+            <div className="col border-end pt-2">
+              <div className="fs-5 fw-bold">973k</div>
+              <div className="text-uppercase text-muted small">followers</div>
+            </div>
+            <div className="col pt-2">
+              <div className="fs-5 fw-bold">1.792</div>
+              <div className="text-uppercase text-muted small">tweets</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* LinkedIn Widget */}
+      <div className="col-sm-6 col-xl-4 col-xxl-3">
+        <div className="card text-white" style={{ backgroundColor: '#4875b4' }}>
+          <div className="card-header border-0 d-flex justify-content-center py-4 bg-transparent">
+            <span style={{ fontSize: '3rem' }}>in</span>
+          </div>
+          <div className="card-body row text-center bg-white text-dark rounded-bottom p-2 mx-0">
+            <div className="col border-end pt-2">
+              <div className="fs-5 fw-bold">500</div>
+              <div className="text-uppercase text-muted small">contacts</div>
+            </div>
+            <div className="col pt-2">
+              <div className="fs-5 fw-bold">1.292</div>
+              <div className="text-uppercase text-muted small">feeds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Calendar Widget */}
+      <div className="col-sm-6 col-xl-4 col-xxl-3">
+        <div className="card text-white bg-warning">
+          <div className="card-header border-0 d-flex justify-content-center py-4 bg-transparent">
+            <span style={{ fontSize: '3rem' }}>📅</span>
+          </div>
+          <div className="card-body row text-center bg-white text-dark rounded-bottom p-2 mx-0">
+            <div className="col border-end pt-2">
+              <div className="fs-5 fw-bold">12+</div>
+              <div className="text-uppercase text-muted small">events</div>
+            </div>
+            <div className="col pt-2">
+              <div className="fs-5 fw-bold">4</div>
+              <div className="text-uppercase text-muted small">meetings</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

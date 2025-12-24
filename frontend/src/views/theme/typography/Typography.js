@@ -1,16 +1,13 @@
 import React from 'react'
-import { CCard, CCardHeader, CCardBody } from '@coreui/react'
-import { DocsLink } from 'src/components'
 
 const Typography = () => {
   return (
     <>
-      <CCard className="mb-4">
-        <CCardHeader>
+      <div className="card mb-4">
+        <div className="card-header">
           Headings
-          <DocsLink href="https://coreui.io/docs/content/typography/" />
-        </CCardHeader>
-        <CCardBody>
+        </div>
+        <div className="card-body">
           <p>
             Documentation and examples for Bootstrap typography, including global settings,
             headings, body text, lists, and more.
@@ -85,11 +82,11 @@ const Typography = () => {
               </tr>
             </tbody>
           </table>
-        </CCardBody>
-      </CCard>
-      <CCard className="mb-4">
-        <CCardHeader>Headings</CCardHeader>
-        <CCardBody>
+        </div>
+      </div>
+      <div className="card mb-4">
+        <div className="card-header">Headings</div>
+        <div className="card-body">
           <p>
             <code className="highlighter-rouge">.h1</code> through
             <code className="highlighter-rouge">.h6</code>
@@ -104,9 +101,9 @@ const Typography = () => {
             <p className="h5">h5. Bootstrap heading</p>
             <p className="h6">h6. Bootstrap heading</p>
           </div>
-        </CCardBody>
-      </CCard>
-      <CCard className="mb-4">
+        </div>
+      </div>
+      <div className="card mb-4">
         <div className="card-header">Display headings</div>
         <div className="card-body">
           <p>
@@ -141,10 +138,10 @@ const Typography = () => {
             </table>
           </div>
         </div>
-      </CCard>
-      <CCard className="mb-4">
-        <CCardHeader>Inline text elements</CCardHeader>
-        <CCardBody>
+      </div>
+      <div className="card mb-4">
+        <div className="card-header">Inline text elements</div>
+        <div className="card-body">
           <p>
             Traditional heading elements are designed to work best in the meat of your page content.
             When you need a heading to stand out, consider using a <strong>display heading</strong>
@@ -176,11 +173,11 @@ const Typography = () => {
               <em>This line rendered as italicized text.</em>
             </p>
           </div>
-        </CCardBody>
-      </CCard>
-      <CCard className="mb-4">
-        <CCardHeader>Description list alignment</CCardHeader>
-        <CCardBody>
+        </div>
+      </div>
+      <div className="card mb-4">
+        <div className="card-header">Description list alignment</div>
+        <div className="card-body">
           <p>
             Align terms and descriptions horizontally by using our grid system’s predefined classes
             (or semantic mixins). For longer terms, you can optionally add a{' '}
@@ -220,8 +217,8 @@ const Typography = () => {
               </dd>
             </dl>
           </div>
-        </CCardBody>
-      </CCard>
+        </div>
+      </div>
     </>
   )
 }

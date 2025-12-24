@@ -1,32 +1,4 @@
-import React, { useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import {
-  CContainer,
-  CDropdown,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
-  CHeader,
-  CHeaderNav,
-  CHeaderToggler,
-  CNavLink,
-  CNavItem,
-  useColorModes,
-  CBadge,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import {
-  cilBell,
-  cilContrast,
-  cilEnvelopeOpen,
-  cilList,
-  cilMenu,
-  cilMoon,
-  cilSun,
-} from '@coreui/icons'
-
-import { AppBreadcrumb } from './index'
+import React, { useEffect, useRef, useState } from 'react'
 import { AppHeaderDropdown } from './header/index'
 import { AppHeaderNav } from './AppHeaderNav'
 import navigation from '../_nav'
@@ -34,9 +6,14 @@ import logo from '../assets/images/logo.png'
 
 const AppHeader = () => {
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const [colorMode, setColorMode] = useState('light') // Default to light, or read from localStorage if you want persistence
+  const [themeOpen, setThemeOpen] = useState(false)
+  const themeDropdownRef = useRef(null)
 
-  // Sidebar controls removed as sidebar is deprecated
+  // Handlers for theme specific logic if needed (e.g. document attribute)
+  useEffect(() => {
+    document.documentElement.setAttribute('data-bs-theme', colorMode)
+  }, [colorMode])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,14 +21,24 @@ const AppHeader = () => {
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
     }
 
+    const handleClickOutside = (event) => {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target)) {
+        setThemeOpen(false)
+      }
+    }
+
     document.addEventListener('scroll', handleScroll)
-    return () => document.removeEventListener('scroll', handleScroll)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('scroll', handleScroll)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   return (
-    <CHeader position="static" className="mb-4 p-0 shadow-none border-0" ref={headerRef} style={{ zIndex: 1030 }}>
+    <header className="header mb-4 p-0 shadow-none border-0 sticky-top bg-white" ref={headerRef} style={{ zIndex: 1030 }}>
       {/* Row 1: Branding and User Actions */}
-      <CContainer fluid className="border-bottom px-4 py-2 bg-white d-flex justify-content-between align-items-center">
+      <div className="container-fluid border-bottom px-4 py-2 bg-white d-flex justify-content-between align-items-center">
         {/* Branding */}
         <div className="d-flex align-items-center">
           <img src={logo} alt="Power Computers" height={40} />
@@ -61,63 +48,64 @@ const AppHeader = () => {
         <div className="d-flex align-items-center gap-3">
           {/* Version Badge */}
           <span className="text-secondary small d-none d-md-block">The token is not compatible with this server, please contact powercomputer</span>
-          <CBadge color="danger" className="ms-2">Ver 1.0.0</CBadge>
+          <span className="badge bg-danger ms-2">Ver 1.0.0</span>
 
           <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
 
-          {/* Fullscreen Toggle (Placeholder) */}
-          <CIcon icon={cilBell} size="lg" className="text-secondary pointer" />
+          {/* Fullscreen Toggle / Bell (Placeholder) */}
+          <span role="button" className="text-secondary fs-5" aria-label="Notifications">🔔</span>
 
           {/* Theme Toggle */}
-          <CDropdown variant="nav-item" placement="bottom-end">
-            <CDropdownToggle caret={false} className="d-flex align-items-center">
-              {colorMode === 'dark' ? (
-                <CIcon icon={cilMoon} size="lg" />
-              ) : colorMode === 'auto' ? (
-                <CIcon icon={cilContrast} size="lg" />
-              ) : (
-                <CIcon icon={cilSun} size="lg" />
-              )}
-            </CDropdownToggle>
-            <CDropdownMenu>
-              <CDropdownItem
-                active={colorMode === 'light'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('light')}
-              >
-                <CIcon className="me-2" icon={cilSun} size="lg" /> Light
-              </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'dark'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('dark')}
-              >
-                <CIcon className="me-2" icon={cilMoon} size="lg" /> Dark
-              </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'auto'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('auto')}
-              >
-                <CIcon className="me-2" icon={cilContrast} size="lg" /> Auto
-              </CDropdownItem>
-            </CDropdownMenu>
-          </CDropdown>
+          <div className="dropdown" ref={themeDropdownRef}>
+            <button
+              className="btn p-0 d-flex align-items-center border-0 bg-transparent"
+              type="button"
+              onClick={() => setThemeOpen(!themeOpen)}
+              aria-expanded={themeOpen}
+            >
+              <span className="fs-5 text-secondary">
+                {colorMode === 'dark' ? '🌙' : colorMode === 'auto' ? '🌗' : '☀️'}
+              </span>
+            </button>
+            <ul className={`dropdown-menu dropdown-menu-end ${themeOpen ? 'show' : ''}`} style={{ position: 'absolute', right: 0 }}>
+              <li>
+                <button
+                  className={`dropdown-item d-flex align-items-center ${colorMode === 'light' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => { setColorMode('light'); setThemeOpen(false); }}
+                >
+                  <span className="me-2">☀️</span> Light
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`dropdown-item d-flex align-items-center ${colorMode === 'dark' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => { setColorMode('dark'); setThemeOpen(false); }}
+                >
+                  <span className="me-2">🌙</span> Dark
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`dropdown-item d-flex align-items-center ${colorMode === 'auto' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => { setColorMode('auto'); setThemeOpen(false); }}
+                >
+                  <span className="me-2">🌗</span> Auto
+                </button>
+              </li>
+            </ul>
+          </div>
 
           {/* Profile Dropdown */}
           <AppHeaderDropdown />
         </div>
-      </CContainer>
+      </div>
 
       {/* Row 2: Navigation Menu */}
-      <CContainer fluid className="px-4 py-2 border-bottom bg-white d-none d-md-flex">
-        <CHeaderNav className="w-100">
+      <div className="container-fluid px-4 py-2 border-bottom bg-white d-none d-md-flex">
+        <div className="w-100">
           <AppHeaderNav items={(() => {
             const userStr = localStorage.getItem('user');
             const user = userStr ? JSON.parse(userStr) : {};
@@ -138,10 +126,10 @@ const AppHeader = () => {
               return item.name !== 'Admin' && item.name !== 'Seller' && item.name !== 'Buyer';
             });
           })()} />
-        </CHeaderNav>
-      </CContainer>
+        </div>
+      </div>
 
-    </CHeader>
+    </header>
   )
 }
 

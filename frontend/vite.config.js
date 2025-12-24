@@ -38,8 +38,6 @@ export default defineConfig({
             output: {
                 manualChunks: {
                     'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-                    'coreui-vendor': ['@coreui/react', '@coreui/coreui', '@coreui/icons-react'],
-                    'chart-vendor': ['chart.js', '@coreui/react-chartjs'],
                 },
             },
         },

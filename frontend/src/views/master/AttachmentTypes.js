@@ -1,31 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CButton,
-    CFormInput,
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CForm,
-    CFormLabel,
-    CFormSelect,
-    CSpinner,
-    CBadge
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilPlus, cilPencil } from '@coreui/icons'
 import { toast } from 'react-toastify'
 import { attachmentAPI } from '../../services/attachmentService'
 
@@ -87,102 +60,118 @@ const AttachmentTypes = () => {
     }
 
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader className="d-flex justify-content-between align-items-center">
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
                         <strong>Attachment Types</strong>
-                        <CButton color="primary" onClick={handleCreate}>
-                            <CIcon icon={cilPlus} className="me-2" />
+                        <button className="btn btn-primary" onClick={handleCreate}>
+                            <span className="me-2">➕</span>
                             Add Type
-                        </CButton>
-                    </CCardHeader>
-                    <CCardBody>
-                        <CTable hover>
-                            <CTableHead>
-                                <CTableRow>
-                                    <CTableHeaderCell>Name</CTableHeaderCell>
-                                    <CTableHeaderCell>Status</CTableHeaderCell>
-                                    <CTableHeaderCell>Created At</CTableHeaderCell>
-                                    <CTableHeaderCell>Actions</CTableHeaderCell>
-                                </CTableRow>
-                            </CTableHead>
-                            <CTableBody>
-                                {loading ? (
-                                    <CTableRow>
-                                        <CTableDataCell colSpan="4" className="text-center">
-                                            <CSpinner size="sm" />
-                                        </CTableDataCell>
-                                    </CTableRow>
-                                ) : types.length === 0 ? (
-                                    <CTableRow>
-                                        <CTableDataCell colSpan="4" className="text-center">
-                                            No attachment types found
-                                        </CTableDataCell>
-                                    </CTableRow>
-                                ) : (
-                                    types.map((item) => (
-                                        <CTableRow key={item.id}>
-                                            <CTableDataCell>{item.name}</CTableDataCell>
-                                            <CTableDataCell>
-                                                <CBadge color={item.status === 'active' ? 'success' : 'secondary'}>
-                                                    {item.status}
-                                                </CBadge>
-                                            </CTableDataCell>
-                                            <CTableDataCell>{new Date(item.created_at).toLocaleDateString()}</CTableDataCell>
-                                            <CTableDataCell>
-                                                <CButton
-                                                    color={item.status === 'active' ? 'warning' : 'success'}
-                                                    size="sm"
-                                                    onClick={() => handleStatusToggle(item)}
-                                                >
-                                                    {item.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                </CButton>
-                                            </CTableDataCell>
-                                        </CTableRow>
-                                    ))
-                                )}
-                            </CTableBody>
-                        </CTable>
-                    </CCardBody>
-                </CCard>
-            </CCol>
+                        </button>
+                    </div>
+                    <div className="card-body">
+                        <div className="table-responsive">
+                            <table className="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="4" className="text-center">
+                                                <div className="spinner-border spinner-border-sm" role="status">
+                                                    <span className="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : types.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="text-center">
+                                                No attachment types found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        types.map((item) => (
+                                            <tr key={item.id}>
+                                                <td>{item.name}</td>
+                                                <td>
+                                                    <span className={`badge bg-${item.status === 'active' ? 'success' : 'secondary'}`}>
+                                                        {item.status}
+                                                    </span>
+                                                </td>
+                                                <td>{new Date(item.created_at).toLocaleDateString()}</td>
+                                                <td>
+                                                    <button
+                                                        className={`btn btn-sm btn-${item.status === 'active' ? 'warning' : 'success'}`}
+                                                        onClick={() => handleStatusToggle(item)}
+                                                    >
+                                                        {item.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Modal */}
-            <CModal visible={modalVisible} onClose={() => setModalVisible(false)} backdrop="static">
-                <CModalHeader>
-                    <CModalTitle>Add Attachment Type</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CForm>
-                        <div className="mb-3">
-                            <CFormLabel>Name</CFormLabel>
-                            <CFormInput
-                                placeholder="e.g. TIN, BRELA, ISO"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
+            {modalVisible && (
+                <>
+                    <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Add Attachment Type</h5>
+                                    <button type="button" className="btn-close" onClick={() => setModalVisible(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <form>
+                                        <div className="mb-3">
+                                            <label className="form-label">Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="e.g. TIN, BRELA, ISO"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Status</label>
+                                            <select
+                                                className="form-select"
+                                                value={formData.status}
+                                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                            >
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setModalVisible(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitLoading}>
+                                        {submitLoading ? <div className="spinner-border spinner-border-sm" role="status"><span className="visually-hidden">Loading...</span></div> : 'Save'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="mb-3">
-                            <CFormLabel>Status</CFormLabel>
-                            <CFormSelect
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </CFormSelect>
-                        </div>
-                    </CForm>
-                </CModalBody>
-                <CModalFooter>
-                    <CButton color="secondary" onClick={() => setModalVisible(false)}>Cancel</CButton>
-                    <CButton color="primary" onClick={handleSubmit} disabled={submitLoading}>
-                        {submitLoading ? <CSpinner size="sm" /> : 'Save'}
-                    </CButton>
-                </CModalFooter>
-            </CModal>
-        </CRow>
+                    </div>
+                    <div className="modal-backdrop fade show"></div>
+                </>
+            )}
+        </div>
     )
 }
 

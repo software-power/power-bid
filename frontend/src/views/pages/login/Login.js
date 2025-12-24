@@ -1,26 +1,7 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  CButton,
-  CCard,
-  CCardBody,
-  CCol,
-  CContainer,
-  CForm,
-  CFormInput,
-  CFormLabel,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
-  CToast,
-  CToastBody,
-  CToaster,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilLowVision, cilAddressBook } from '@coreui/icons'
 import { userAPI } from '../../../services/userService'
-
-const cilEye = ["512 512", "<path class='ci-primary' d='M256,64C140.552,64,42.32,156.402,10.666,218.062 c-3.928,7.662-3.928,16.214,0,23.876C42.32,303.598,140.552,396,256,396c115.448,0,213.68-92.402,245.334-154.062 c3.928-7.662,3.928-16.214,0-23.876C469.68,156.402,371.448,64,256,64z M256,356c-99.256,0-196.406-82.532-232.022-135.5 c35.616-52.968,132.766-135.5,232.022-135.5c99.256,0,196.406,82.532,232.022,135.5C452.406,273.468,355.256,356,256,356z M256,120 c-61.856,0-112,50.144-112,112s50.144,112,112,112s112-50.144,112-112S317.856,120,256,120z M256,304c-44.183,0-80-35.817-80-80 s35.817-80,80-80s80,35.817,80,80S300.183,304,256,304z'/>"]
+import { toast } from 'react-toastify'
 import logo from '../../../assets/images/logo.png'
 
 const Login = () => {
@@ -29,23 +10,11 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [toast, setToast] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
-  const toaster = useRef()
-
-  const addToast = (errorMessage) => {
-    setToast(
-      <CToast autohide={true} visible={true} color="danger" className="text-white align-items-center">
-        <div className="d-flex">
-          <CToastBody>{errorMessage}</CToastBody>
-        </div>
-      </CToast>
-    )
-  }
 
   const userLogin = async () => {
     if (!email || !password) {
-      addToast('Please enter both email and password')
+      toast.error('Please enter both email and password')
       return
     }
 
@@ -58,11 +27,11 @@ const Login = () => {
         // Navigate to dashboard
         navigate('/dashboard')
       } else {
-        addToast(response.message || 'Login failed')
+        toast.error(response.message || 'Login failed')
       }
     } catch (error) {
       console.error('Login error:', error)
-      addToast(error.message || 'Failed to connect to server')
+      toast.error(error.message || 'Failed to connect to server')
     } finally {
       setLoading(false)
     }
@@ -74,95 +43,233 @@ const Login = () => {
   }
 
   return (
-    <div className="min-vh-100 d-flex flex-column bg-light">
-      <CToaster ref={toaster} push={toast} placement="top-end" />
-
+    <div className="min-vh-100 d-flex flex-column" style={{
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)'
+    }}>
       {/* Main Content */}
-      <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-        <CContainer>
-          <CRow className="justify-content-center">
-            <CCol md={5}>
-              <CCard className="border-0 shadow-sm p-4">
-                <CCardBody>
+      <div className="flex-grow-1 d-flex align-items-center justify-content-center py-4 px-3">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+              <div className="card border-0 shadow-lg" style={{
+                borderRadius: '16px',
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+              }}>
+                <div className="card-body p-4 p-sm-5">
+                  {/* Logo Section */}
                   <div className="text-center mb-4">
-                    <img src={logo} alt="Logo" height="80" className="mb-3" />
-
-                    <p className="text-muted small">Provide your email and password to login</p>
+                    <div className="mb-3" style={{
+                      animation: 'fadeInDown 0.6s ease-out'
+                    }}>
+                      <img
+                        src={logo}
+                        alt="PowerComputers Logo"
+                        className="img-fluid"
+                        style={{
+                          maxHeight: '100px',
+                          height: 'auto',
+                          width: 'auto',
+                          maxWidth: '100%'
+                        }}
+                      />
+                    </div>
+                    <p className="text-muted mb-0" style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '400'
+                    }}>
+                      Provide your email and password to login
+                    </p>
                   </div>
 
-                  <CForm>
+                  <form onSubmit={(e) => { e.preventDefault(); userLogin(); }}>
+                    {/* Email Input */}
                     <div className="mb-3">
-                      <CFormLabel htmlFor="email" className="small text-muted fw-semibold">Email Address</CFormLabel>
-                      <CInputGroup>
-                        <CInputGroupText className="bg-transparent border-end-0">
-                          <CIcon icon={cilAddressBook} className="text-muted" />
-                        </CInputGroupText>
-                        <CFormInput
+                      <label htmlFor="email" className="form-label fw-semibold text-secondary" style={{ fontSize: '0.875rem' }}>
+                        Email Address
+                      </label>
+                      <div className="input-group shadow-sm" style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <span className="input-group-text bg-white border-end-0" style={{ borderRadius: '8px 0 0 8px' }}>
+                          <span className="text-muted">✉️</span>
+                        </span>
+                        <input
                           type="email"
                           id="email"
                           placeholder="Enter your email"
                           autoComplete="username"
-                          className="border-start-0"
+                          className="form-control border-start-0 border-end-0"
+                          style={{
+                            fontSize: '0.95rem',
+                            padding: '0.625rem 0.75rem'
+                          }}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
+                          required
                         />
-                      </CInputGroup>
+                      </div>
                     </div>
 
+                    {/* Password Input */}
                     <div className="mb-3">
-                      <CFormLabel htmlFor="password" className="small text-muted fw-semibold">Password</CFormLabel>
-                      <CInputGroup>
-                        <CInputGroupText className="bg-transparent border-end-0">
-                          <CIcon icon={cilLockLocked} className="text-muted" />
-                        </CInputGroupText>
-                        <CFormInput
+                      <label htmlFor="password" className="form-label fw-semibold text-secondary" style={{ fontSize: '0.875rem' }}>
+                        Password
+                      </label>
+                      <div className="input-group shadow-sm" style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <span className="input-group-text bg-white border-end-0" style={{ borderRadius: '8px 0 0 8px' }}>
+                          <span className="text-muted">🔒</span>
+                        </span>
+                        <input
                           type={showPassword ? 'text' : 'password'}
                           id="password"
                           placeholder="Enter password"
                           autoComplete="current-password"
-                          className="border-start-0 border-end-0"
+                          className="form-control border-start-0 border-end-0"
+                          style={{
+                            fontSize: '0.95rem',
+                            padding: '0.625rem 0.75rem'
+                          }}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              userLogin();
+                            }
+                          }}
+                          required
                         />
-                        <CInputGroupText
-                          className="bg-transparent border-start-0"
-                          style={{ cursor: 'pointer' }}
+                        <span
+                          className="input-group-text bg-white border-start-0"
+                          style={{
+                            cursor: 'pointer',
+                            borderRadius: '0 8px 8px 0',
+                            transition: 'background-color 0.2s ease'
+                          }}
                           onClick={() => setShowPassword(!showPassword)}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
                         >
-                          <CIcon icon={showPassword ? cilEye : cilLowVision} className="text-muted" />
-                        </CInputGroupText>
-                      </CInputGroup>
+                          <span className="text-muted">{showPassword ? '👁️' : '🙈'}</span>
+                        </span>
+                      </div>
                     </div>
 
+                    {/* Forgot Password Link */}
                     <div className="d-flex justify-content-end mb-4">
-                      <Link to="/forgot-password" onClick={forgetPassword} style={{ textDecoration: 'none', fontSize: '0.85rem' }}>
+                      <Link
+                        to="/forgot-password"
+                        onClick={forgetPassword}
+                        className="text-decoration-none"
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#7da0c2',
+                          fontWeight: '500',
+                          transition: 'color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = '#5a7fa2'}
+                        onMouseLeave={(e) => e.target.style.color = '#7da0c2'}
+                      >
                         Forgot Password?
                       </Link>
                     </div>
 
-                    <div className="d-grid gap-2 mb-3">
-                      <CButton
-                        color="primary"
-                        className="py-2 text-white fw-semibold"
-                        style={{ backgroundColor: '#7da0c2', borderColor: '#7da0c2' }}
+                    {/* Login Button */}
+                    <div className="d-grid gap-2 mb-4">
+                      <button
+                        type="submit"
+                        className="btn text-white fw-semibold shadow-sm"
+                        style={{
+                          backgroundColor: '#7da0c2',
+                          borderColor: '#7da0c2',
+                          padding: '0.75rem',
+                          fontSize: '1rem',
+                          borderRadius: '8px',
+                          transition: 'all 0.3s ease',
+                          transform: loading ? 'scale(0.98)' : 'scale(1)'
+                        }}
                         onClick={userLogin}
                         disabled={loading}
+                        onMouseEnter={(e) => {
+                          if (!loading) {
+                            e.currentTarget.style.backgroundColor = '#6a8fb0';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(125, 160, 194, 0.4)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!loading) {
+                            e.currentTarget.style.backgroundColor = '#7da0c2';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '';
+                          }
+                        }}
                       >
-                        {loading ? 'Logging in...' : 'Login'}
-                      </CButton>
+                        {loading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Logging in...
+                          </>
+                        ) : 'Login'}
+                      </button>
                     </div>
 
-                    <div className="text-center small text-muted">
-                      Don't have an account? <Link to="/register" style={{ textDecoration: 'none', fontWeight: '600' }}>Register Now</Link>
+                    {/* Register Link */}
+                    <div className="text-center">
+                      <span className="text-muted" style={{ fontSize: '0.9rem' }}>
+                        Don't have an account?{' '}
+                      </span>
+                      <Link
+                        to="/register"
+                        className="text-decoration-none fw-semibold"
+                        style={{
+                          fontSize: '0.9rem',
+                          color: '#7da0c2',
+                          transition: 'color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = '#5a7fa2'}
+                        onMouseLeave={(e) => e.target.style.color = '#7da0c2'}
+                      >
+                        Register Now
+                      </Link>
                     </div>
-
-                  </CForm>
-                </CCardBody>
-              </CCard>
-            </CCol>
-          </CRow>
-        </CContainer>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Add CSS animations */}
+      <style>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+          .card-body {
+            padding: 1.5rem !important;
+          }
+        }
+
+        /* Focus states for better accessibility */
+        .form-control:focus {
+          border-color: #7da0c2 !important;
+          box-shadow: 0 0 0 0.2rem rgba(125, 160, 194, 0.25) !important;
+        }
+
+        /* Input group hover effect */
+        .input-group:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+      `}</style>
     </div>
   )
 }

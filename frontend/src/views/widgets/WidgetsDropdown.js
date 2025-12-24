@@ -1,9 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
-import { CRow, CCol, CCard, CCardBody } from '@coreui/react'
-import { cilArrowRight, cilFile, cilBuilding, cilHome, cilClipboard } from '@coreui/icons'
-import CIcon from '@coreui/icons-react'
 
 const WidgetsDropdown = (props) => {
   const navigate = useNavigate()
@@ -12,7 +9,7 @@ const WidgetsDropdown = (props) => {
     {
       title: 'Users',
       count: 1,
-      icon: cilFile,
+      icon: '📄',
       iconColor: '#FF6B6B',
       iconBg: '#FFE5E5',
       route: '/users'
@@ -20,7 +17,7 @@ const WidgetsDropdown = (props) => {
     {
       title: 'Bids',
       count: 0,
-      icon: cilClipboard,
+      icon: '📋',
       iconColor: '#4ECDC4',
       iconBg: '#E0F7F6',
       route: '/buttons/buttons'
@@ -28,7 +25,7 @@ const WidgetsDropdown = (props) => {
     {
       title: 'Bids',
       count: 0,
-      icon: cilBuilding,
+      icon: '🏢',
       iconColor: '#45B7D1',
       iconBg: '#E1F5FE',
       route: '/buttons/buttons'
@@ -36,7 +33,7 @@ const WidgetsDropdown = (props) => {
     {
       title: 'Bids',
       count: 0,
-      icon: cilHome,
+      icon: '🏠',
       iconColor: '#96CEB4',
       iconBg: '#E8F5E9',
       route: '/buttons/buttons'
@@ -44,25 +41,23 @@ const WidgetsDropdown = (props) => {
   ]
 
   return (
-    <CRow className={props.className} xs={{ gutter: 3 }}>
+    <div className={`row ${props.className} g-3`}>
       {widgets.map((widget, index) => (
-        <CCol key={index} sm={6} lg={3}>
-          <CCard className="border-0 shadow-sm">
-            <CCardBody className="p-4">
+        <div key={index} className="col-sm-6 col-lg-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-4">
               <div className="d-flex align-items-start justify-content-between mb-3">
                 <div
                   className="d-flex align-items-center justify-content-center rounded"
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: widget.iconBg
+                    backgroundColor: widget.iconBg,
+                    fontSize: '1.5rem',
+                    color: widget.iconColor
                   }}
                 >
-                  <CIcon
-                    icon={widget.icon}
-                    size="xl"
-                    style={{ color: widget.iconColor }}
-                  />
+                  {widget.icon}
                 </div>
                 <div className="text-end">
                   <h3 className="mb-0 fw-bold">{widget.count}</h3>
@@ -73,7 +68,8 @@ const WidgetsDropdown = (props) => {
 
               <div className="d-flex align-items-center justify-content-between">
                 <small className="text-muted">
-                  <span style={{ color: widget.applications > 0 ? '#FF6B6B' : '#6c757d' }}>{widget.applications}</span>
+                  {/* widget.applications was undefined in original code, assumed 0 or missing */}
+                  <span style={{ color: '#6c757d' }}></span>
                 </small>
                 <a
                   href="#"
@@ -84,14 +80,14 @@ const WidgetsDropdown = (props) => {
                   className="text-decoration-none d-flex align-items-center"
                   style={{ color: '#4A90E2', fontSize: '0.875rem', fontWeight: '500', cursor: 'pointer' }}
                 >
-                  View <CIcon icon={cilArrowRight} size="sm" className="ms-1" />
+                  View <span className="ms-1">→</span>
                 </a>
               </div>
-            </CCardBody>
-          </CCard>
-        </CCol>
+            </div>
+          </div>
+        </div>
       ))}
-    </CRow>
+    </div>
   )
 }
 

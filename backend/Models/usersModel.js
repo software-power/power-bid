@@ -147,11 +147,15 @@ const getUsersByMainAccount = (mainAccountId) => {
  */
 const updateUser = (id, userData) => {
   return new Promise((resolve, reject) => {
-    let sql = `UPDATE users SET full_name = ?, email = ?, phone = ?, tin_no = ?, business_licence = ?, status = ?`;
+    let sql = `UPDATE users SET full_name = ?, email = ?, phone = ?, address = ?, department = ?, designation = ?, country = ?, tin_no = ?, business_licence = ?, status = ?`;
     let values = [
       userData.full_name,
       userData.email,
       userData.phone,
+      userData.address || null,
+      userData.department || null,
+      userData.designation || null,
+      userData.country || null,
       userData.tin_no || null,
       userData.business_licence || null,
       userData.status

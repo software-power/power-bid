@@ -1,41 +1,22 @@
-import React, { useState, useRef } from 'react'
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CForm,
-    CFormLabel,
-    CFormInput,
-    CFormTextarea,
-    CButton,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CFormCheck,
-    CToaster,
-    CToast,
-    CToastBody,
-    CBadge,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilPlus, cilTrash, cilSend, cilCloudDownload } from '@coreui/icons'
+import React, { useState, useRef, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import { tenderAPI } from '../../services/tenderService'
+import { useParams, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const AddQuotation = () => {
+    const { id } = useParams()
+    const navigate = useNavigate()
+    const isEditMode = !!id
+
     const [loading, setLoading] = useState(false)
-    const [toast, setToast] = useState(0)
-    const toaster = useRef()
 
     // Tender Details
     const [tenderData, setTenderData] = useState({
         title: '',
         description: '',
+        start_date: '',
+        end_date: '',
         required_documents: 'TIN Certificate, Business Licence, Certificate of Incorporation',
     })
 
@@ -48,14 +29,54 @@ const AddQuotation = () => {
     const [emailInput, setEmailInput] = useState('')
     const [invitedEmails, setInvitedEmails] = useState([])
 
-    const addToast = (message, color = 'success') => {
-        setToast(
-            <CToast autohide={true} visible={true} color={color} className="text-white align-items-center">
-                <div className="d-flex">
-                    <CToastBody>{message}</CToastBody>
-                </div>
-            </CToast>
-        )
+    useEffect(() => {
+        if (isEditMode) {
+            fetchTenderDetails()
+        }
+    }, [id])
+
+    const fetchTenderDetails = async () => {
+        try {
+            setLoading(true)
+            const response = await tenderAPI.getTenderById(id)
+
+            if (response.status === 'success') {
+                const { tender, items: tenderItems, invited_emails } = response.data
+
+                // Set tender data
+                setTenderData({
+                    title: tender.title || '',
+                    description: tender.description || '',
+                    start_date: tender.start_date ? tender.start_date.split('T')[0] : '',
+                    end_date: tender.end_date ? tender.end_date.split('T')[0] : '',
+                    required_documents: tender.required_documents || '',
+                })
+
+                // Set items
+                if (tenderItems && tenderItems.length > 0) {
+                    setItems(tenderItems.map(item => ({
+                        id: item.id,
+                        itemName: item.item_name || '',
+                        brand: item.brand || '',
+                        countryOfOrigin: item.country_of_origin || '',
+                        strength: item.strength || '',
+                        unitOfMeasure: item.unit_of_measure || '',
+                        qty: item.qty || 1,
+                        allowAlternative: item.allow_alternative === 1,
+                    })))
+                }
+
+                // Set invited emails if available
+                if (invited_emails && Array.isArray(invited_emails)) {
+                    setInvitedEmails(invited_emails.map(e => typeof e === 'string' ? e : e.email))
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching tender:', error)
+            toast.error('Failed to load quotation details')
+        } finally {
+            setLoading(false)
+        }
     }
 
     // Handle Tender Data Change
@@ -93,7 +114,7 @@ const AddQuotation = () => {
             const email = emailInput.trim()
             if (email) {
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                    addToast('Invalid email format', 'warning')
+                    toast.warning('Invalid email format')
                     return
                 }
                 if (!invitedEmails.includes(email)) {
@@ -121,10 +142,8 @@ const AddQuotation = () => {
             'Remarks'
         ]
 
-        // Create a worksheet
         const ws = XLSX.utils.aoa_to_sheet([headers])
 
-        // Set column widths
         const wscols = [
             { wch: 30 }, // Item Name
             { wch: 15 }, // Brand
@@ -137,11 +156,8 @@ const AddQuotation = () => {
         ]
         ws['!cols'] = wscols
 
-        // Create a workbook
         const wb = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(wb, ws, 'Tender Items')
-
-        // Generate file
         XLSX.writeFile(wb, 'tender_items_template.xlsx')
     }
 
@@ -166,7 +182,7 @@ const AddQuotation = () => {
                 const data = XLSX.utils.sheet_to_json(ws)
 
                 if (data.length === 0) {
-                    addToast('Excel file is empty', 'warning')
+                    toast.warning('Excel file is empty')
                     return
                 }
 
@@ -180,21 +196,18 @@ const AddQuotation = () => {
                     allowAlternative: (row['Allow Alternative'] && row['Allow Alternative'].toString().toLowerCase() === 'yes') ? true : false
                 }))
 
-                // Filter out default empty row if present and untouched
                 let currentItems = [...items]
                 if (currentItems.length === 1 && !currentItems[0].itemName && !currentItems[0].unitOfMeasure) {
                     currentItems = []
                 }
 
                 setItems([...currentItems, ...newItems])
-                addToast(`Successfully imported ${newItems.length} items from ${file.name}`)
-
-                // Clear input
+                toast.success(`Successfully imported ${newItems.length} items from ${file.name}`)
                 e.target.value = null
 
             } catch (error) {
                 console.error('Error parsing Excel:', error)
-                addToast('Failed to parse Excel file. Please check format.', 'danger')
+                toast.error('Failed to parse Excel file. Please check format.')
             }
         }
         reader.readAsBinaryString(file)
@@ -203,14 +216,23 @@ const AddQuotation = () => {
     // Submit Form
     const handleSubmit = async () => {
         if (!tenderData.title) {
-            addToast('Please enter a tender title', 'danger')
+            toast.error('Please enter a tender title')
             return
         }
 
-        // Validate Items
+        if (!tenderData.start_date || !tenderData.end_date) {
+            toast.error('Please select both start date and end date')
+            return
+        }
+
+        if (new Date(tenderData.end_date) <= new Date(tenderData.start_date)) {
+            toast.error('End date must be after start date')
+            return
+        }
+
         for (const item of items) {
             if (!item.itemName || !item.qty || !item.unitOfMeasure) {
-                addToast('Please fill in required Item Name, Unit of Measure and Qty for all items', 'danger')
+                toast.error('Please fill in required Item Name, Unit of Measure and Qty for all items')
                 return
             }
         }
@@ -223,52 +245,97 @@ const AddQuotation = () => {
                 invited_emails: invitedEmails
             }
 
-            await tenderAPI.createQuotation(payload)
-            addToast('Quotation created and invites sent successfully!')
-
-            // Reset Form
-            setTenderData({ title: '', description: '', required_documents: '' })
-            setItems([{ itemName: '', brand: '', countryOfOrigin: '', strength: '', unitOfMeasure: '', qty: 1, allowAlternative: false }])
-            setInvitedEmails([])
-            setEmailInput('')
+            if (isEditMode) {
+                await tenderAPI.updateQuotation(id, payload)
+                toast.success('Quotation updated successfully!')
+                setTimeout(() => {
+                    navigate('/buyer/my-quotations')
+                }, 1500)
+            } else {
+                await tenderAPI.createQuotation(payload)
+                toast.success('Quotation created and invites sent successfully!')
+                setTenderData({ title: '', description: '', start_date: '', end_date: '', required_documents: '' })
+                setItems([{ itemName: '', brand: '', countryOfOrigin: '', strength: '', unitOfMeasure: '', qty: 1, allowAlternative: false }])
+                setInvitedEmails([])
+                setEmailInput('')
+            }
 
         } catch (error) {
             console.error(error)
-            addToast(error.message || 'Failed to create quotation', 'danger')
+            toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} quotation`)
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <CRow>
-            <CToaster ref={toaster} push={toast} placement="top-end" />
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader>
-                        <strong>Create New Quotation / Tender</strong>
-                    </CCardHeader>
-                    <CCardBody>
-                        <CForm>
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                        <strong>{isEditMode ? 'Edit Quotation / Tender' : 'Create New Quotation / Tender'}</strong>
+                        {isEditMode && (
+                            <button
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => navigate('/buyer/my-quotations')}
+                            >
+                                <span className="me-2">←</span>
+                                Back to List
+                            </button>
+                        )}
+                    </div>
+                    <div className="card-body">
+                        <form onSubmit={(e) => e.preventDefault()}>
                             {/* Tender Info */}
                             <div className="mb-3">
-                                <CFormLabel>Tender Title</CFormLabel>
-                                <CFormInput
+                                <label className="form-label">Tender Title</label>
+                                <input
+                                    type="text"
                                     name="title"
+                                    className="form-control"
                                     placeholder="e.g. Supply of Office Stationery"
                                     value={tenderData.title}
                                     onChange={handleTenderChange}
                                 />
                             </div>
                             <div className="mb-3">
-                                <CFormLabel>Description</CFormLabel>
-                                <CFormTextarea
+                                <label className="form-label">Description</label>
+                                <textarea
                                     name="description"
+                                    className="form-control"
                                     rows={3}
                                     placeholder="Brief description of the requirement..."
                                     value={tenderData.description}
                                     onChange={handleTenderChange}
                                 />
+                            </div>
+
+                            {/* Date Range */}
+                            <div className="row mb-3">
+                                <div className="col-md-6">
+                                    <label className="form-label">Start Date <span style={{ color: 'red' }}>*</span></label>
+                                    <input
+                                        type="date"
+                                        name="start_date"
+                                        className="form-control"
+                                        value={tenderData.start_date}
+                                        onChange={handleTenderChange}
+                                        min={new Date().toISOString().split('T')[0]}
+                                    />
+                                    <div className="form-text">When quotation submissions begin</div>
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label">End Date <span style={{ color: 'red' }}>*</span></label>
+                                    <input
+                                        type="date"
+                                        name="end_date"
+                                        className="form-control"
+                                        value={tenderData.end_date}
+                                        onChange={handleTenderChange}
+                                        min={tenderData.start_date || new Date().toISOString().split('T')[0]}
+                                    />
+                                    <div className="form-text">Deadline for quotation submissions</div>
+                                </div>
                             </div>
 
                             {/* Items Section */}
@@ -282,116 +349,120 @@ const AddQuotation = () => {
                                         style={{ display: 'none' }}
                                         onChange={handleFileUpload}
                                     />
-                                    <CButton color="primary" size="sm" variant="outline" className="me-2" onClick={handleUploadClick}>
-                                        <CIcon icon={cilCloudDownload} className="me-2" style={{ transform: 'rotate(180deg)' }} />
+                                    <button type="button" className="btn btn-outline-primary btn-sm me-2" onClick={handleUploadClick}>
+                                        <span className="me-2">⭳</span>
                                         Upload Excel
-                                    </CButton>
-                                    <CButton color="success" size="sm" variant="outline" onClick={handleDownloadTemplate}>
-                                        <CIcon icon={cilCloudDownload} className="me-2" />
+                                    </button>
+                                    <button type="button" className="btn btn-outline-success btn-sm" onClick={handleDownloadTemplate}>
+                                        <span className="me-2">⭳</span>
                                         Download Template
-                                    </CButton>
+                                    </button>
                                 </div>
                             </div>
                             <div className="table-responsive">
-                                <CTable bordered>
-                                    <CTableHead>
-                                        <CTableRow>
-                                            <CTableHeaderCell>Item Name*</CTableHeaderCell>
-                                            <CTableHeaderCell>Brand</CTableHeaderCell>
-                                            <CTableHeaderCell>Origin</CTableHeaderCell>
-                                            <CTableHeaderCell>Strength</CTableHeaderCell>
-                                            <CTableHeaderCell>UoM*</CTableHeaderCell>
-                                            <CTableHeaderCell style={{ width: '80px' }}>Qty*</CTableHeaderCell>
-                                            <CTableHeaderCell style={{ width: '80px' }}>Alt?</CTableHeaderCell>
-                                            <CTableHeaderCell style={{ width: '50px' }}></CTableHeaderCell>
-                                        </CTableRow>
-                                    </CTableHead>
-                                    <CTableBody>
+                                <table className="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Item Name<span style={{ color: 'red' }}>*</span></th>
+                                            <th>Brand</th>
+                                            <th>Origin</th>
+                                            <th>Strength</th>
+                                            <th>UoM<span style={{ color: 'red' }}>*</span></th>
+                                            <th style={{ width: '80px' }}>Qty<span style={{ color: 'red' }}>*</span></th>
+                                            <th style={{ width: '80px' }}>Alt?</th>
+                                            <th style={{ width: '50px' }}></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                                         {items.map((item, index) => (
-                                            <CTableRow key={index}>
-                                                <CTableDataCell>
-                                                    <CFormInput
-                                                        size="sm"
+                                            <tr key={index}>
+                                                <td>
+                                                    <input
+                                                        className="form-control form-control-sm"
                                                         value={item.itemName}
                                                         onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CFormInput
-                                                        size="sm"
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        className="form-control form-control-sm"
                                                         value={item.brand}
                                                         onChange={(e) => handleItemChange(index, 'brand', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CFormInput
-                                                        size="sm"
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        className="form-control form-control-sm"
                                                         value={item.countryOfOrigin}
                                                         onChange={(e) => handleItemChange(index, 'countryOfOrigin', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CFormInput
-                                                        size="sm"
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        className="form-control form-control-sm"
                                                         value={item.strength}
                                                         onChange={(e) => handleItemChange(index, 'strength', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CFormInput
-                                                        size="sm"
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        className="form-control form-control-sm"
                                                         value={item.unitOfMeasure}
                                                         onChange={(e) => handleItemChange(index, 'unitOfMeasure', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CFormInput
+                                                </td>
+                                                <td>
+                                                    <input
                                                         type="number"
-                                                        size="sm"
+                                                        className="form-control form-control-sm"
                                                         value={item.qty}
                                                         onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
                                                     />
-                                                </CTableDataCell>
-                                                <CTableDataCell className="text-center">
-                                                    <CFormCheck
-                                                        checked={item.allowAlternative}
-                                                        onChange={(e) => handleItemChange(index, 'allowAlternative', e.target.checked)}
-                                                    />
-                                                </CTableDataCell>
-                                                <CTableDataCell>
+                                                </td>
+                                                <td className="text-center">
+                                                    <div className="form-check d-flex justify-content-center">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="checkbox"
+                                                            checked={item.allowAlternative}
+                                                            onChange={(e) => handleItemChange(index, 'allowAlternative', e.target.checked)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td>
                                                     {items.length > 1 && (
-                                                        <CButton color="danger" variant="ghost" size="sm" onClick={() => removeItem(index)}>
-                                                            <CIcon icon={cilTrash} />
-                                                        </CButton>
+                                                        <button type="button" className="btn btn-ghost-danger btn-sm text-danger" onClick={() => removeItem(index)}>
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
                                                     )}
-                                                </CTableDataCell>
-                                            </CTableRow>
+                                                </td>
+                                            </tr>
                                         ))}
-                                    </CTableBody>
-                                </CTable>
+                                    </tbody>
+                                </table>
                             </div>
-                            <CButton color="secondary" size="sm" onClick={addItem} className="mb-4">
-                                <CIcon icon={cilPlus} className="me-2" /> Add Item
-                            </CButton>
+                            <button type="button" className="btn btn-secondary btn-sm mb-4" onClick={addItem}>
+                                <span className="me-2">+</span> Add Item
+                            </button>
 
                             {/* Seller Invitation */}
                             <h5 className="mb-3">Seller Invitations</h5>
                             <div className="mb-3">
-                                <CFormLabel>Invite Sellers (Enter Email and press Enter)</CFormLabel>
-                                <div className="d-flex flex-wrap gap-2 mb-2 p-2 border rounded" style={{ minHeight: '40px' }}>
+                                <label className="form-label">Invite Sellers (Enter Email and press Enter)</label>
+                                <div className="d-flex flex-wrap gap-2 mb-2 p-2 border rounded" style={{ minHeight: '40px', backgroundColor: '#fff' }}>
                                     {invitedEmails.map((email) => (
-                                        <CBadge key={email} color="info" className="d-flex align-items-center p-2">
+                                        <span key={email} className="badge bg-info text-dark d-flex align-items-center p-2">
                                             {email}
                                             <span
-                                                className="ms-2 cursor-pointer fw-bold text-white"
+                                                className="ms-2 fw-bold text-white"
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => removeEmail(email)}
                                             >×</span>
-                                        </CBadge>
+                                        </span>
                                     ))}
                                     <input
                                         type="text"
-                                        className="border-0 focus-visible-0"
+                                        className="border-0"
                                         style={{ outline: 'none', minWidth: '150px' }}
                                         value={emailInput}
                                         onChange={(e) => setEmailInput(e.target.value)}
@@ -403,9 +474,10 @@ const AddQuotation = () => {
                             </div>
 
                             <div className="mb-4">
-                                <CFormLabel>Required Documents (for invites)</CFormLabel>
-                                <CFormTextarea
+                                <label className="form-label">Required Documents (for invites)</label>
+                                <textarea
                                     name="required_documents"
+                                    className="form-control"
                                     rows={3}
                                     value={tenderData.required_documents}
                                     onChange={handleTenderChange}
@@ -414,20 +486,21 @@ const AddQuotation = () => {
                             </div>
 
                             <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <CButton color="primary" onClick={handleSubmit} disabled={loading}>
+                                <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
                                     {loading ? 'Processing...' : (
                                         <>
-                                            <CIcon icon={cilSend} className="me-2" /> Publish & Send Invites
+                                            <span className="me-2">{isEditMode ? '💾' : '➤'}</span>
+                                            {isEditMode ? 'Save Changes' : 'Publish & Send Invites'}
                                         </>
                                     )}
-                                </CButton>
+                                </button>
                             </div>
 
-                        </CForm>
-                    </CCardBody>
-                </CCard>
-            </CCol>
-        </CRow>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 

@@ -1,14 +1,10 @@
 import React, { Suspense, useEffect } from 'react'
 import { HashRouter, Route, Routes, Navigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 
-import { CSpinner, useColorModes } from '@coreui/react'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './scss/style.scss'
 
-// We use those styles to show code examples, you should remove them in your application.
-import './scss/examples.scss'
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -22,23 +18,10 @@ const TenderInvitation = React.lazy(() => import('./views/public/TenderInvitatio
 const ProtectedRoute = React.lazy(() => import('./components/ProtectedRoute')) // Import ProtectedRoute
 
 const App = () => {
-  const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
-  const storedTheme = useSelector((state) => state.theme)
-
+  // Simple theme initialization
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.href.split('?')[1])
-    const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
-    if (theme) {
-      setColorMode(theme)
-    }
-
-    if (isColorModeSet()) {
-      return
-    }
-
-    // Default to light mode if no preference is set
-    setColorMode('light')
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    document.documentElement.setAttribute('data-bs-theme', 'light')
+  }, [])
 
   return (
     <HashRouter>
@@ -57,7 +40,9 @@ const App = () => {
       <Suspense
         fallback={
           <div className="pt-3 text-center">
-            <CSpinner color="primary" variant="grow" />
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
           </div>
         }
       >

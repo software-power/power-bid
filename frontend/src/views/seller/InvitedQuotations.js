@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CBadge,
-    CButton,
-    CSpinner,
-} from '@coreui/react';
 import { tenderAPI } from '../../services/tenderService';
-import CIcon from '@coreui/icons-react';
-import { cilPencil, cilExternalLink } from '@coreui/icons';
 
 const InvitedQuotations = () => {
     const [invitations, setInvitations] = useState([]);
@@ -56,28 +38,27 @@ const InvitedQuotations = () => {
             accepted: 'success',
             rejected: 'danger',
         };
+        const color = statusColors[status] || 'secondary';
         return (
-            <CBadge color={statusColors[status] || 'secondary'}>
+            <span className={`badge bg-${color} text-dark`}>
                 {status.toUpperCase()}
-            </CBadge>
+            </span>
         );
     };
 
-    const handleSubmitQuotation = (token) => {
-        navigate(`/seller/submit-quotation/${token}`);
-    };
-
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader>
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header">
                         <strong>Invited Quotations</strong>
-                    </CCardHeader>
-                    <CCardBody>
+                    </div>
+                    <div className="card-body">
                         {loading ? (
                             <div className="text-center py-5">
-                                <CSpinner color="primary" />
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
                             </div>
                         ) : invitations.length === 0 ? (
                             <div className="text-center py-5 text-muted">
@@ -85,63 +66,63 @@ const InvitedQuotations = () => {
                                 <small>You will see quotation invitations here when buyers invite you.</small>
                             </div>
                         ) : (
-                            <CTable hover responsive>
-                                <CTableHead>
-                                    <CTableRow>
-                                        <CTableHeaderCell scope="col">#</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Title</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Buyer</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Description</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Status</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Invited On</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                                    </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
-                                    {invitations.map((invitation, index) => (
-                                        <CTableRow key={index}>
-                                            <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                                            <CTableDataCell>
-                                                <strong>{invitation.title}</strong>
-                                            </CTableDataCell>
-                                            <CTableDataCell>{invitation.buyer_name}</CTableDataCell>
-                                            <CTableDataCell>
-                                                {invitation.description?.substring(0, 50)}
-                                                {invitation.description?.length > 50 ? '...' : ''}
-                                            </CTableDataCell>
-                                            <CTableDataCell>
-                                                {getStatusBadge(invitation.invitation_status)}
-                                            </CTableDataCell>
-                                            <CTableDataCell>{formatDate(invitation.invited_at)}</CTableDataCell>
-                                            <CTableDataCell>
-                                                <div className="d-flex gap-2">
-                                                    <CButton
-                                                        color="info"
-                                                        size="sm"
-                                                        onClick={() => window.open(`#/tender/invitation/${invitation.invitation_token}`, '_blank')}
-                                                    >
-                                                        <CIcon icon={cilExternalLink} className="me-1" />
-                                                        View Details
-                                                    </CButton>
-                                                    <CButton
-                                                        color="primary"
-                                                        size="sm"
-                                                        onClick={() => navigate(`/seller/submit-quotation/tender/${invitation.tender_id}`)}
-                                                    >
-                                                        <CIcon icon={cilPencil} className="me-1" />
-                                                        Submit Quotation
-                                                    </CButton>
-                                                </div>
-                                            </CTableDataCell>
-                                        </CTableRow>
-                                    ))}
-                                </CTableBody>
-                            </CTable>
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Title</th>
+                                            <th scope="col">Buyer</th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Invited On</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {invitations.map((invitation, index) => (
+                                            <tr key={index}>
+                                                <th scope="row">{index + 1}</th>
+                                                <td>
+                                                    <strong>{invitation.title}</strong>
+                                                </td>
+                                                <td>{invitation.buyer_name}</td>
+                                                <td>
+                                                    {invitation.description?.substring(0, 50)}
+                                                    {invitation.description?.length > 50 ? '...' : ''}
+                                                </td>
+                                                <td>
+                                                    {getStatusBadge(invitation.invitation_status)}
+                                                </td>
+                                                <td>{formatDate(invitation.invited_at)}</td>
+                                                <td>
+                                                    <div className="d-flex gap-2">
+                                                        <button
+                                                            className="btn btn-info btn-sm text-white"
+                                                            onClick={() => window.open(`#/tender/invitation/${invitation.invitation_token}`, '_blank')}
+                                                        >
+                                                            <span className="me-1">↗</span>
+                                                            View Details
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-primary btn-sm"
+                                                            onClick={() => navigate(`/seller/submit-quotation/tender/${invitation.tender_id}`)}
+                                                        >
+                                                            <span className="me-1">✎</span>
+                                                            Submit Quotation
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </CCardBody>
-                </CCard>
-            </CCol>
-        </CRow>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

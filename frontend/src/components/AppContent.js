@@ -1,14 +1,13 @@
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { CContainer, CSpinner } from '@coreui/react'
 
 // routes config
 import routes from '../routes'
 
 const AppContent = () => {
   return (
-    <CContainer className="px-4" fluid>
-      <Suspense fallback={<CSpinner color="primary" />}>
+    <div className="container-fluid px-4">
+      <Suspense fallback={<div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>}>
         <Routes>
           {routes.map((route, idx) => {
             return (
@@ -26,7 +25,7 @@ const AppContent = () => {
           <Route path="/" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </Suspense>
-    </CContainer>
+    </div>
   )
 }
 

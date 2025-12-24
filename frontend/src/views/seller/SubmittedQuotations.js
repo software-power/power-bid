@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CBadge,
-    CButton,
-    CSpinner,
-} from '@coreui/react';
 import { quotationAPI } from '../../services/quotationService';
-import CIcon from '@coreui/icons-react';
-import { cilPencil } from '@coreui/icons';
 
 const SubmittedQuotations = () => {
     const [quotations, setQuotations] = useState([]);
@@ -58,24 +40,27 @@ const SubmittedQuotations = () => {
             accepted: 'success',
             rejected: 'danger',
         };
+        const color = statusColors[status] || 'primary';
         return (
-            <CBadge color={statusColors[status] || 'primary'}>
+            <span className={`badge bg-${color} text-white`}>
                 {status.toUpperCase()}
-            </CBadge>
+            </span>
         );
     };
 
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader>
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header">
                         <strong>My Submitted Quotations</strong>
-                    </CCardHeader>
-                    <CCardBody>
+                    </div>
+                    <div className="card-body">
                         {loading ? (
                             <div className="text-center py-5">
-                                <CSpinner color="primary" />
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
                             </div>
                         ) : quotations.length === 0 ? (
                             <div className="text-center py-5 text-muted">
@@ -83,55 +68,56 @@ const SubmittedQuotations = () => {
                                 <small>All quotations submitted by your account and sub-users will appear here.</small>
                             </div>
                         ) : (
-                            <CTable hover responsive>
-                                <CTableHead>
-                                    <CTableRow>
-                                        <CTableHeaderCell scope="col">#</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Tender Title</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Items</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Delivery Period</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Status</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Submitted On</CTableHeaderCell>
-                                        <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                                    </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
-                                    {quotations.map((q, index) => (
-                                        <CTableRow key={q.id}>
-                                            <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                                            <CTableDataCell>
-                                                <strong>{q.tender_title}</strong>
-                                            </CTableDataCell>
-                                            <CTableDataCell>
-                                                <CBadge color="primary">{q.item_count}</CBadge>
-                                            </CTableDataCell>
-                                            <CTableDataCell>{q.delivery_period || 'N/A'}</CTableDataCell>
-                                            <CTableDataCell>{getStatusBadge(q.status)}</CTableDataCell>
-                                            <CTableDataCell>{formatDate(q.submitted_at || q.created_at)}</CTableDataCell>
-                                            <CTableDataCell>
-                                                <CButton
-                                                    color="primary"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        const path = q.invitation_token
-                                                            ? `/seller/submit-quotation/${q.invitation_token}`
-                                                            : `/seller/submit-quotation/tender/${q.tender_id}`;
-                                                        navigate(path);
-                                                    }}
-                                                >
-                                                    <CIcon icon={cilPencil} className="me-1" />
-                                                    Re-Submit
-                                                </CButton>
-                                            </CTableDataCell>
-                                        </CTableRow>
-                                    ))}
-                                </CTableBody>
-                            </CTable>
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Tender Title</th>
+                                            <th scope="col">Items</th>
+                                            <th scope="col">Delivery Period</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Submitted On</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {quotations.map((q, index) => (
+                                            <tr key={q.id}>
+                                                <th scope="row">{index + 1}</th>
+                                                <td>
+                                                    <strong>{q.tender_title}</strong>
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-primary">{q.item_count}</span>
+                                                </td>
+                                                <td>{q.delivery_period || 'N/A'}</td>
+                                                <td>{getStatusBadge(q.status)}</td>
+                                                <td>{formatDate(q.submitted_at || q.created_at)}</td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-primary btn-sm"
+                                                        onClick={() => {
+                                                            const path = q.invitation_token
+                                                                ? `/seller/submit-quotation/${q.invitation_token}`
+                                                                : `/seller/submit-quotation/tender/${q.tender_id}`;
+                                                            navigate(path);
+                                                        }}
+                                                    >
+                                                        <span className="me-1">✎</span>
+                                                        Re-Submit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </CCardBody>
-                </CCard>
-            </CCol>
-        </CRow>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

@@ -1,21 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CAlert,
-    CBadge,
-} from '@coreui/react'
 import { tenderAPI } from '../../services/tenderService'
 
 const TenderInvitation = () => {
@@ -56,37 +40,37 @@ const TenderInvitation = () => {
     if (error) {
         return (
             <div className="min-vh-100 d-flex flex-column align-items-center justify-content-center bg-light">
-                <CContainer maxWidth="sm">
-                    <CAlert color="danger" className="text-center">
+                <div className="container" style={{ maxWidth: '600px' }}>
+                    <div className="alert alert-danger text-center" role="alert">
                         <h4>Access Denied</h4>
                         <p>{error}</p>
-                    </CAlert>
-                </CContainer>
+                    </div>
+                </div>
             </div>
         )
     }
 
     return (
         <div className="min-vh-100 bg-light py-5">
-            <CContainer>
-                <CRow className="justify-content-center">
-                    <CCol lg={10}>
+            <div className="container">
+                <div className="row justify-content-center">
+                    <div className="col-lg-10">
                         {/* Header / Info */}
-                        <CCard className="mb-4 border-top-primary border-top-3 shadow-sm">
-                            <CCardHeader className="bg-white p-4">
+                        <div className="card mb-4 border-top border-3 border-primary shadow-sm">
+                            <div className="card-header bg-white p-4">
                                 <div className="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h6 className="text-muted text-uppercase fw-bold mb-1">Invitation to Tender</h6>
                                         <h2 className="mb-2 text-primary">{tender?.title}</h2>
-                                        <CBadge color="success">OPEN</CBadge>
+                                        <span className="badge bg-success">OPEN</span>
                                     </div>
                                     <div className="text-end text-muted small">
                                         <div>Ref: #{tender?.id}</div>
                                         <div>Date: {new Date(tender?.created_at).toLocaleDateString()}</div>
                                     </div>
                                 </div>
-                            </CCardHeader>
-                            <CCardBody className="p-4">
+                            </div>
+                            <div className="card-body p-4">
                                 <h5>Description</h5>
                                 <p className="text-secondary">{tender?.description || 'No detailed description provided.'}</p>
 
@@ -98,53 +82,55 @@ const TenderInvitation = () => {
                                         {tender?.required_documents || 'No specific document requirements listed.'}
                                     </p>
                                 </div>
-                            </CCardBody>
-                        </CCard>
+                            </div>
+                        </div>
 
                         {/* Items Table */}
-                        <CCard className="shadow-sm border-0">
-                            <CCardHeader className="bg-white fw-bold py-3">
+                        <div className="card shadow-sm border-0">
+                            <div className="card-header bg-white fw-bold py-3">
                                 Items / Bill of Quantities
-                            </CCardHeader>
-                            <CCardBody className="p-0">
-                                <CTable hover responsive className="mb-0">
-                                    <CTableHead color="light">
-                                        <CTableRow>
-                                            <CTableHeaderCell>Item Name</CTableHeaderCell>
-                                            <CTableHeaderCell>Description / Specs</CTableHeaderCell>
-                                            <CTableHeaderCell>Unit</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Quantity</CTableHeaderCell>
-                                        </CTableRow>
-                                    </CTableHead>
-                                    <CTableBody>
-                                        {items.map((item) => (
-                                            <CTableRow key={item.id}>
-                                                <CTableDataCell className="fw-semibold">{item.item_name}</CTableDataCell>
-                                                <CTableDataCell className="small text-muted">
-                                                    {[
-                                                        item.brand && `Brand: ${item.brand}`,
-                                                        item.country_of_origin && `Origin: ${item.country_of_origin}`,
-                                                        item.strength && `Strength: ${item.strength}`
-                                                    ].filter(Boolean).join(', ') || '-'}
-                                                    {item.allow_alternative === 1 && <div className="text-success mt-1">✓ Alternative allowed</div>}
-                                                </CTableDataCell>
-                                                <CTableDataCell>{item.unit_of_measure}</CTableDataCell>
-                                                <CTableDataCell className="text-center fw-bold">{item.qty}</CTableDataCell>
-                                            </CTableRow>
-                                        ))}
-                                    </CTableBody>
-                                </CTable>
-                            </CCardBody>
-                        </CCard>
+                            </div>
+                            <div className="card-body p-0">
+                                <div className="table-responsive">
+                                    <table className="table table-hover mb-0">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th scope="col">Item Name</th>
+                                                <th scope="col">Description / Specs</th>
+                                                <th scope="col">Unit</th>
+                                                <th scope="col" className="text-center">Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {items.map((item) => (
+                                                <tr key={item.id}>
+                                                    <td className="fw-semibold">{item.item_name}</td>
+                                                    <td className="small text-muted">
+                                                        {[
+                                                            item.brand && `Brand: ${item.brand}`,
+                                                            item.country_of_origin && `Origin: ${item.country_of_origin}`,
+                                                            item.strength && `Strength: ${item.strength}`
+                                                        ].filter(Boolean).join(', ') || '-'}
+                                                        {item.allow_alternative === 1 && <div className="text-success mt-1">✓ Alternative allowed</div>}
+                                                    </td>
+                                                    <td>{item.unit_of_measure}</td>
+                                                    <td className="text-center fw-bold">{item.qty}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Action Area (Future Scope) */}
                         <div className="mt-4 text-center text-muted small">
                             To submit a quotation, please follow the instructions in your email or contact the buyer directly.
                         </div>
 
-                    </CCol>
-                </CRow>
-            </CContainer>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

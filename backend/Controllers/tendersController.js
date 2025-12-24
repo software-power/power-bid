@@ -5,6 +5,8 @@ const {
     getTenderById,
     getTenderItems,
     getInvitationsByEmails,
+    getInvitedEmailsByTenderId,
+    updateTenderTransaction,
 } = require('../Models/tendersModel');
 const { getUsersByMainAccount } = require('../Models/usersModel');
 const { sendTenderInvitation } = require('../Services/emailService');
@@ -16,7 +18,7 @@ const SYSTEM_DOMAIN = process.env.SYSTEM_DOMAIN || 'http://localhost:3000';
  * Create a new Quotation/Tender
  */
 const createQuotation = async (req, res) => {
-    const { title, description, items, invited_emails, required_documents } = req.body;
+    const { title, description, start_date, end_date, items, invited_emails, required_documents } = req.body;
     const userId = req.user.id;
     const accountId = req.user.main_account_id || req.user.id; // Fallback to user ID if main_account_id is missing/null
 
@@ -37,7 +39,9 @@ const createQuotation = async (req, res) => {
     const tenderData = {
         title,
         description,
-        required_documents,
+        start_date,
+        end_date,
+        // required_documents,
         account_id: accountId,
         created_by: userId,
     };
@@ -170,9 +174,116 @@ const getMyInvitations = async (req, res) => {
     }
 };
 
+/**
+ * Get Tender Details For Editing (Buyer)
+ */
+const getTenderDetailsForEdit = async (req, res) => {
+    const { id } = req.params;
+    const accountId = req.user.main_account_id || req.user.id; // Verify ownership
+
+    try {
+        const tender = await getTenderById(id);
+
+        if (!tender) {
+            return res.status(404).json({ status: 'error', message: 'Tender not found' });
+        }
+
+        // Check ownership
+        if (tender.account_id !== accountId) {
+            return res.status(403).json({ status: 'error', message: 'Unauthorized access to this tender' });
+        }
+
+        const items = await getTenderItems(id);
+        const invited_emails = await getInvitedEmailsByTenderId(id);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                tender,
+                items,
+                invited_emails,
+            }
+        });
+
+    } catch (err) {
+        console.error('Get tender details for edit error:', err);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+};
+
+
+/**
+ * Update Quotation/Tender
+ */
+const updateQuotation = async (req, res) => {
+    const { id } = req.params;
+    const { title, description, start_date, end_date, items, invited_emails, required_documents } = req.body;
+    const accountId = req.user.main_account_id || req.user.id; // Verify ownership
+
+    try {
+        // Verify existance and ownership first
+        const tender = await getTenderById(id);
+        if (!tender) {
+            return res.status(404).json({ status: 'error', message: 'Tender not found' });
+        }
+        if (tender.account_id !== accountId) {
+            return res.status(403).json({ status: 'error', message: 'Unauthorized access to this tender' });
+        }
+
+        const tenderData = {
+            title,
+            description,
+            start_date,
+            end_date,
+            required_documents,
+            account_id: accountId
+        };
+
+        // Determine new emails to invite
+        // Fetch existing invited emails
+        const existingEmails = await getInvitedEmailsByTenderId(id);
+        const newEmails = invited_emails.filter(email => !existingEmails.includes(email));
+
+        let newInvitations = [];
+        if (newEmails.length > 0) {
+            newInvitations = newEmails.map(email => ({ email }));
+        }
+
+        const result = await updateTenderTransaction(id, tenderData, items, newInvitations);
+
+        // Send emails asynchronously for NEW invitations
+        if (result.newInvitations && result.newInvitations.length > 0) {
+            result.newInvitations.forEach(invite => {
+                const link = `${SYSTEM_DOMAIN}/tender/invitation/${invite.token}`;
+                sendTenderInvitation(
+                    invite.email,
+                    req.user.full_name,
+                    title,
+                    required_documents,
+                    link
+                );
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Quotation updated successfully',
+        });
+
+    } catch (err) {
+        console.error('Update quotation error:', err);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to update quotation: ' + (err.message || err.sqlMessage || 'Unknown error'),
+        });
+    }
+};
+
 module.exports = {
     createQuotation,
     getMyTenders,
     getTenderDetailsPublic,
     getMyInvitations,
+    getTenderDetailsForEdit,
+    updateQuotation,
 };

@@ -40,5 +40,25 @@ export const tenderAPI = {
         } catch (error) {
             throw error.response?.data || error;
         }
+    },
+
+    // Get Tender by ID (for editing)
+    getTenderById: async (tenderId) => {
+        try {
+            const response = await apiClient.get(`/tenders/${tenderId}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Update Quotation
+    updateQuotation: async (tenderId, tenderData) => {
+        try {
+            const response = await apiClient.put(`/tenders/${tenderId}`, tenderData);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
     }
 };

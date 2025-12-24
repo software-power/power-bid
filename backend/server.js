@@ -26,7 +26,16 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "upgrade-insecure-requests": null,
+      },
+    },
+  })
+);
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 app.use(
   bodyParser.urlencoded({
@@ -95,5 +104,10 @@ app.listen(payRollConfig.port, '0.0.0.0', () => {
   console.log(
     `✅ Payroll app listening at ${payRollConfig.base_url}:${payRollConfig.port}`
   );
+
+  // Automatically open the application in the default browser
+  const url = `${payRollConfig.base_url}:${payRollConfig.port}`;
+  const startCommand = process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open';
+  require('child_process').exec(`${startCommand} ${url}`);
 });
 

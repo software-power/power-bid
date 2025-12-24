@@ -84,6 +84,10 @@ const userLogin = async (req, res) => {
         type: user.type,
         role_id: user.role_id,
         phone: user.phone,
+        address: user.address,
+        department: user.department,
+        designation: user.designation,
+        country: user.country,
         status: user.status,
         main_account_id: user.main_account_id,
       },
@@ -364,7 +368,7 @@ const getMySubAccounts = async (req, res) => {
  */
 const updateUserDetails = async (req, res) => {
   const userId = req.params.id;
-  const { full_name, email, phone, status, password, type, tin_no, business_licence } = req.body;
+  const { full_name, email, phone, address, department, designation, country, status, password, type, tin_no, business_licence } = req.body;
 
   // Validation
   if (!full_name || !email) {
@@ -421,6 +425,10 @@ const updateUserDetails = async (req, res) => {
       full_name,
       email,
       phone: phone || null,
+      address: address || null,
+      department: department || null,
+      designation: designation || null,
+      country: country || null,
       tin_no: tin_no || null,
       business_licence: business_licence || null,
       status: status || currentUser.status,

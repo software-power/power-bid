@@ -1,30 +1,14 @@
-import React, { useEffect, useState, createRef } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { CRow, CCol, CCard, CCardHeader, CCardBody } from '@coreui/react'
-import { rgbToHex } from '@coreui/utils'
-import { DocsLink } from 'src/components'
 
-const ThemeView = () => {
-  const [color, setColor] = useState('rgb(255, 255, 255)')
-  const ref = createRef()
-
-  useEffect(() => {
-    const el = ref.current.parentNode.firstChild
-    const varColor = window.getComputedStyle(el).getPropertyValue('background-color')
-    setColor(varColor)
-  }, [ref])
-
+const ThemeView = ({ colorClass }) => {
   return (
-    <table className="table w-100" ref={ref}>
+    <table className="table w-100 table-sm mt-2">
       <tbody>
         <tr>
-          <td className="text-body-secondary">HEX:</td>
-          <td className="font-weight-bold">{rgbToHex(color)}</td>
-        </tr>
-        <tr>
-          <td className="text-body-secondary">RGB:</td>
-          <td className="font-weight-bold">{color}</td>
+          <td className="text-muted small">Class:</td>
+          <td className="fw-bold small">{colorClass}</td>
         </tr>
       </tbody>
     </table>
@@ -32,13 +16,13 @@ const ThemeView = () => {
 }
 
 const ThemeColor = ({ className, children }) => {
-  const classes = classNames(className, 'theme-color w-75 rounded mb-3')
+  const classes = classNames(className, 'theme-color w-100 rounded mb-3 shadow-sm')
   return (
-    <CCol xs={12} sm={6} md={4} xl={2} className="mb-4">
+    <div className="col-12 col-sm-6 col-md-4 col-xl-2 mb-4">
       <div className={classes} style={{ paddingTop: '75%' }}></div>
       {children}
-      <ThemeView />
-    </CCol>
+      <ThemeView colorClass={className} />
+    </div>
   )
 }
 
@@ -50,13 +34,12 @@ ThemeColor.propTypes = {
 const Colors = () => {
   return (
     <>
-      <CCard className="mb-4">
-        <CCardHeader>
+      <div className="card mb-4 border-0 shadow-sm">
+        <div className="card-header bg-white border-bottom">
           Theme colors
-          <DocsLink href="https://coreui.io/docs/utilities/colors/" />
-        </CCardHeader>
-        <CCardBody>
-          <CRow>
+        </div>
+        <div className="card-body">
+          <div className="row">
             <ThemeColor className="bg-primary">
               <h6>Brand Primary Color</h6>
             </ThemeColor>
@@ -78,12 +61,12 @@ const Colors = () => {
             <ThemeColor className="bg-light">
               <h6>Brand Light Color</h6>
             </ThemeColor>
-            <ThemeColor className="bg-dark">
+            <ThemeColor className="bg-dark text-white">
               <h6>Brand Dark Color</h6>
             </ThemeColor>
-          </CRow>
-        </CCardBody>
-      </CCard>
+          </div>
+        </div>
+      </div>
     </>
   )
 }

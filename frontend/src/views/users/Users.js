@@ -1,37 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CRow,
-    CTable,
-    CTableHead,
-    CTableRow,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CButton,
-    CFormInput,
-    CInputGroup,
-    CInputGroupText,
-    CBadge,
-    CDropdown,
-    CDropdownToggle,
-    CDropdownMenu,
-    CDropdownItem,
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CForm,
-    CFormLabel,
-    CFormSelect,
-    CSpinner,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilSearch, cilPlus, cilPencil, cilZoom, cilOptions, cilLockLocked, cilEnvelopeClosed, cilPhone, cilUser } from '@coreui/icons'
 import { userAPI } from '../../services/userService'
 import { toast } from 'react-toastify'
 
@@ -175,187 +142,214 @@ const Users = () => {
     )
 
     return (
-        <CRow>
-            <CCol xs={12}>
-                <CCard className="mb-4">
-                    <CCardHeader className="d-flex justify-content-between align-items-center">
+        <div className="row">
+            <div className="col-12">
+                <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-3 flex-grow-1">
-                            <CInputGroup style={{ maxWidth: '300px' }}>
-                                <CInputGroupText className="bg-white">
-                                    <CIcon icon={cilSearch} />
-                                </CInputGroupText>
-                                <CFormInput
+                            <div className="input-group" style={{ maxWidth: '300px' }}>
+                                <span className="input-group-text bg-white">
+                                    <span role="img" aria-label="search">🔍</span>
+                                </span>
+                                <input
+                                    type="text"
+                                    className="form-control"
                                     placeholder="Search users..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                            </CInputGroup>
+                            </div>
                         </div>
-                        <CButton color="primary" onClick={handleCreate}>
-                            <CIcon icon={cilPlus} className="me-2" />
+                        <button className="btn btn-primary" onClick={handleCreate}>
+                            <span className="me-2">➕</span>
                             {currentUser?.type === 'admin' ? 'Register New Account' : 'Add User'}
-                        </CButton>
-                    </CCardHeader>
-                    <CCardBody className="p-0">
+                        </button>
+                    </div>
+                    <div className="card-body p-0">
                         <div className="table-responsive">
-                            <CTable hover className="mb-0">
-                                <CTableHead style={{ backgroundColor: '#f0f0f0' }}>
-                                    <CTableRow>
-                                        <CTableHeaderCell>Full Name</CTableHeaderCell>
-                                        <CTableHeaderCell>Email</CTableHeaderCell>
-                                        <CTableHeaderCell>Phone</CTableHeaderCell>
-                                        <CTableHeaderCell>TIN No</CTableHeaderCell>
-                                        <CTableHeaderCell>Licence</CTableHeaderCell>
-                                        <CTableHeaderCell>Type</CTableHeaderCell>
-                                        <CTableHeaderCell>Status</CTableHeaderCell>
-                                        <CTableHeaderCell>Created At</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
-                                    </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
+                            <table className="table table-hover mb-0">
+                                <thead style={{ backgroundColor: '#f0f0f0' }}>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>TIN No</th>
+                                        <th>Licence</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Created At</th>
+                                        <th className="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {loading ? (
-                                        <CTableRow>
-                                            <CTableDataCell colSpan="9" className="text-center py-4">
-                                                <CSpinner color="primary" />
-                                            </CTableDataCell>
-                                        </CTableRow>
+                                        <tr>
+                                            <td colSpan="9" className="text-center py-4">
+                                                <div className="spinner-border text-primary" role="status">
+                                                    <span className="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     ) : filteredUsers.length === 0 ? (
-                                        <CTableRow>
-                                            <CTableDataCell colSpan="9" className="text-center py-4">
+                                        <tr>
+                                            <td colSpan="9" className="text-center py-4">
                                                 No users found
-                                            </CTableDataCell>
-                                        </CTableRow>
+                                            </td>
+                                        </tr>
                                     ) : (
                                         filteredUsers.map((user) => (
-                                            <CTableRow key={user.id}>
-                                                <CTableDataCell>{user.full_name}</CTableDataCell>
-                                                <CTableDataCell>{user.email}</CTableDataCell>
-                                                <CTableDataCell>{user.phone || '-'}</CTableDataCell>
-                                                <CTableDataCell>{user.tin_no || '-'}</CTableDataCell>
-                                                <CTableDataCell>{user.business_licence || '-'}</CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CBadge color={user.type === 'admin' ? 'danger' : user.type === 'seller' ? 'info' : 'primary'}>
+                                            <tr key={user.id}>
+                                                <td>{user.full_name}</td>
+                                                <td>{user.email}</td>
+                                                <td>{user.phone || '-'}</td>
+                                                <td>{user.tin_no || '-'}</td>
+                                                <td>{user.business_licence || '-'}</td>
+                                                <td>
+                                                    <span className={`badge bg-${user.type === 'admin' ? 'danger' : user.type === 'seller' ? 'info text-dark' : 'primary'}`}>
                                                         {user.type?.toUpperCase()}
-                                                    </CBadge>
-                                                </CTableDataCell>
-                                                <CTableDataCell>
-                                                    <CBadge color={user.status === 'active' ? 'success' : 'secondary'}>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span className={`badge bg-${user.status === 'active' ? 'success' : 'secondary'}`}>
                                                         {user.status?.toUpperCase()}
-                                                    </CBadge>
-                                                </CTableDataCell>
-                                                <CTableDataCell>
+                                                    </span>
+                                                </td>
+                                                <td>
                                                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
-                                                </CTableDataCell>
-                                                <CTableDataCell className="text-center">
-                                                    <CButton color="info" variant="ghost" size="sm" onClick={() => handleEdit(user)}>
-                                                        <CIcon icon={cilPencil} />
-                                                    </CButton>
-                                                </CTableDataCell>
-                                            </CTableRow>
+                                                </td>
+                                                <td className="text-center">
+                                                    <button className="btn btn-sm btn-info text-white" onClick={() => handleEdit(user)}>
+                                                        <span role="img" aria-label="edit">✎</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
                                         ))
                                     )}
-                                </CTableBody>
-                            </CTable>
+                                </tbody>
+                            </table>
                         </div>
-                    </CCardBody>
-                </CCard>
-            </CCol>
+                    </div>
+                </div>
+            </div>
 
-            <CModal visible={modalVisible} onClose={() => setModalVisible(false)} backdrop="static" size="lg">
-                <CModalHeader>
-                    <CModalTitle>{editingUser ? 'Edit User' : 'Add User'}</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CForm className="modal-form-grid">
-                        <div className="mb-3">
-                            <CFormLabel>Full Name</CFormLabel>
-                            <CFormInput
-                                placeholder="e.g. John Doe"
-                                value={formData.fullName}
-                                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <CFormLabel>Email</CFormLabel>
-                            <CFormInput
-                                type="email"
-                                placeholder="name@example.com"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            />
-                        </div>
+            {/* Modal */}
+            {modalVisible && (
+                <>
+                    <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+                        <div className="modal-dialog modal-lg">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">{editingUser ? 'Edit User' : 'Add User'}</h5>
+                                    <button type="button" className="btn-close" onClick={() => setModalVisible(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <form>
+                                        <div className="mb-3">
+                                            <label className="form-label">Full Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="e.g. John Doe"
+                                                value={formData.fullName}
+                                                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Email</label>
+                                            <input
+                                                type="email"
+                                                className="form-control"
+                                                placeholder="name@example.com"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            />
+                                        </div>
 
-                        <div className="mb-3">
-                            <CFormLabel>Phone</CFormLabel>
-                            <CFormInput
-                                placeholder="0768 000 000"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            />
-                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Phone</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="0768 000 000"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            />
+                                        </div>
 
-                        <div className="mb-3">
-                            <CFormLabel>TIN Number</CFormLabel>
-                            <CFormInput
-                                placeholder="TIN Number"
-                                value={formData.tinNo}
-                                onChange={(e) => setFormData({ ...formData, tinNo: e.target.value })}
-                            />
-                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">TIN Number</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="TIN Number"
+                                                value={formData.tinNo}
+                                                onChange={(e) => setFormData({ ...formData, tinNo: e.target.value })}
+                                            />
+                                        </div>
 
-                        <div className="mb-3">
-                            <CFormLabel>Business Licence</CFormLabel>
-                            <CFormInput
-                                placeholder="Business Licence"
-                                value={formData.businessLicence}
-                                onChange={(e) => setFormData({ ...formData, businessLicence: e.target.value })}
-                            />
-                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Business Licence</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Business Licence"
+                                                value={formData.businessLicence}
+                                                onChange={(e) => setFormData({ ...formData, businessLicence: e.target.value })}
+                                            />
+                                        </div>
 
-                        {currentUser?.type === 'admin' && (
-                            <div className="mb-3">
-                                <CFormLabel>User Type</CFormLabel>
-                                <CFormSelect
-                                    value={formData.userType}
-                                    onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
-                                    disabled={!!editingUser}
-                                >
-                                    <option value="">Select Type</option>
-                                    <option value="buyer">Buyer</option>
-                                    <option value="seller">Seller</option>
-                                    <option value="admin">Admin</option>
-                                </CFormSelect>
+                                        {currentUser?.type === 'admin' && (
+                                            <div className="mb-3">
+                                                <label className="form-label">User Type</label>
+                                                <select
+                                                    className="form-select"
+                                                    value={formData.userType}
+                                                    onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
+                                                    disabled={!!editingUser}
+                                                >
+                                                    <option value="">Select Type</option>
+                                                    <option value="buyer">Buyer</option>
+                                                    <option value="seller">Seller</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        <div className="mb-3">
+                                            <label className="form-label">Password {editingUser && <span className="text-muted fw-normal">(Leave blank to keep current)</span>}</label>
+                                            <input
+                                                type="password"
+                                                className="form-control"
+                                                placeholder="••••••••"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Confirm Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-control"
+                                                placeholder="••••••••"
+                                                value={formData.confirmPassword}
+                                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                            />
+                                        </div>
+                                    </form>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-outline-secondary" onClick={() => setModalVisible(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitLoading}>
+                                        {submitLoading ? <div className="spinner-border spinner-border-sm" role="status"><span className="visually-hidden">Loading...</span></div> : (editingUser ? 'Update User' : 'Create User')}
+                                    </button>
+                                </div>
                             </div>
-                        )}
-
-                        <div className="mb-3">
-                            <CFormLabel>Password {editingUser && <span className="text-muted fw-normal">(Leave blank to keep current)</span>}</CFormLabel>
-                            <CFormInput
-                                type="password"
-                                placeholder="••••••••"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            />
                         </div>
-                        <div className="mb-3">
-                            <CFormLabel>Confirm Password</CFormLabel>
-                            <CFormInput
-                                type="password"
-                                placeholder="••••••••"
-                                value={formData.confirmPassword}
-                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                            />
-                        </div>
-                    </CForm>
-                </CModalBody>
-                <CModalFooter>
-                    <CButton color="secondary" variant="outline" onClick={() => setModalVisible(false)}>Cancel</CButton>
-                    <CButton color="primary" onClick={handleSubmit} disabled={submitLoading}>
-                        {submitLoading ? <CSpinner size="sm" /> : (editingUser ? 'Update User' : 'Create User')}
-                    </CButton>
-                </CModalFooter>
-            </CModal>
-        </CRow>
+                    </div>
+                    <div className="modal-backdrop fade show"></div>
+                </>
+            )}
+        </div>
     )
 }
 
